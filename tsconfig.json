@@ -1,0 +1,2 @@
+The tsconfig.json file is the primary configuration file for a TypeScript project. Its presence in a directory indicates
+that the directory is the root of a TypeScript project.
