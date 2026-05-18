@@ -1,3 +1,0 @@
-The package.json file is the central manifest for a Node.js project, acting as its "identity card" and "brain".
-It is a JSON-formatted document located in the project's root directory that describes metadata, manages dependencies, and defines
-automation scripts.
