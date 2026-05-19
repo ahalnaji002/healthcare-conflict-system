@@ -4,7 +4,8 @@ const jwt = require("jsonwebtoken");
 
 // ================= REGISTER =================
 const register = async (req, res) => {
-  const { full_name, email, password, role } = req.body;
+  const { full_name, email, password } = req.body;
+  const role = "patient";
 
   try {
     // Encrypt password

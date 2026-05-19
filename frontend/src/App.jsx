@@ -1,8 +1,9 @@
+import Register from "./pages/Register";
+
 function App() {
   return (
     <div>
-      <h1>Healthcare Conflict System</h1>
-      <p>Frontend setup completed successfully.</p>
+      <Register />
     </div>
   );
 }
