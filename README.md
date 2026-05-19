@@ -93,52 +93,53 @@ healthcare-conflict-system/
 └── README.md
 
 
-⚙️ Installation
+⚙️ Installation:
+
 1️⃣ Clone Repository
 git clone https://github.com/ahalnaji002/healthcare-conflict-system.git
+
 2️⃣ Install Backend Dependencies
 cd backend
 npm install
+
 3️⃣ Install Frontend Dependencies
 cd ../frontend
 npm install
+
 🗄️ Database Setup
 Start XAMPP
-
 Run:
-
 Apache
 MySQL
+
 Create Database
-
 Open phpMyAdmin:
-
 http://localhost/phpmyadmin
 
 Create database:
-
 healthcare_conflict_system
+
 ▶️ Run Project
 Start Backend
 cd backend
 npm start
 
 Backend runs on:
-
 http://localhost:5000
+
 Start Frontend
 cd frontend
 npm run dev
 
 Frontend runs on:
-
 http://localhost:5173
+
 🔒 Protected Routes Example
 GET /api/auth/profile
 
 Requires:
-
 Authorization: Bearer TOKEN
+
 📌 Current Progress
 ✅ Backend Setup
 ✅ Frontend Setup
