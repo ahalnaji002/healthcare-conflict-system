@@ -1,6 +1,9 @@
 import { useState } from "react";
-import API from "../services/api";
-import "../auth.css";
+import API from "../../services/api";
+import "./auth.css";
+// eslint-disable-next-line no-unused-vars
+import { Link } from "react-router-dom";
+import { FaEnvelope, FaLock, FaEye } from "react-icons/fa";
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -26,7 +29,7 @@ function Login() {
       localStorage.setItem("token", response.data.token);
 
       setMessage("Login successful");
-    } catch (error) {
+    } catch {
       setMessage("Login failed");
     }
   };
@@ -41,21 +44,31 @@ function Login() {
         <p className="auth-subtitle">Access your healthcare account securely</p>
 
         <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            name="email"
-            placeholder="Enter your email"
-            value={formData.email}
-            onChange={handleChange}
-          />
+          <div className="input-group">
+            <FaEnvelope className="input-icon" />
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Enter your password"
-            value={formData.password}
-            onChange={handleChange}
-          />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="input-group">
+            <FaLock className="input-icon" />
+
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+            />
+
+            <FaEye className="eye-icon" />
+          </div>
 
           <button type="submit">Login</button>
         </form>
@@ -63,7 +76,7 @@ function Login() {
         <div className="message">{message}</div>
 
         <div className="auth-footer">
-          Don’t have an account? <span>Register</span>
+          Don’t have an account? <Link to="/register">Register</Link>
         </div>
       </div>
     </div>

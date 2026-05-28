@@ -1,6 +1,10 @@
 import { useState } from "react";
-import API from "../services/api";
-import "../auth.css";
+import API from "../../services/api";
+import "./auth.css";
+// eslint-disable-next-line no-unused-vars
+import { Link } from "react-router-dom";
+import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
+
 function Register() {
   const [formData, setFormData] = useState({
     full_name: "",
@@ -49,34 +53,49 @@ function Register() {
         </p>
 
         <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="full_name"
-            placeholder="Full Name"
-            value={formData.full_name}
-            onChange={handleChange}
-          />
+          <div className="input-group">
+            <FaUser className="input-icon" />
 
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-          />
+            <input
+              type="text"
+              name="full_name"
+              placeholder="Full Name"
+              value={formData.full_name}
+              onChange={handleChange}
+            />
+          </div>
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-          />
+          <div className="input-group">
+            <FaEnvelope className="input-icon" />
+
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="input-group">
+            <FaLock className="input-icon" />
+
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+            />
+          </div>
 
           <button type="submit">Register</button>
         </form>
 
         <div className="message">{message}</div>
+        <div className="auth-footer">
+          Already have an account? <Link to="/login">Login</Link>
+        </div>
       </div>
     </div>
   );
