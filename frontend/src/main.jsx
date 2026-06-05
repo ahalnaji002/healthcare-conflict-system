@@ -8,13 +8,10 @@ import "./styles/landing.css";
 import "./styles/forms.css";
 import "./styles/auth.css";
 
-
-
-
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <App />
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

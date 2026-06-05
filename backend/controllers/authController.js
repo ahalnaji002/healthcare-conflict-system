@@ -1,5 +1,5 @@
 const db = require("../config/db");
-const bcrypt = require("bcryptjs");
+// const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 // ================= REGISTER =================
@@ -8,13 +8,10 @@ const register = async (req, res) => {
   const role = "patient";
 
   try {
-    // Encrypt password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const sql =
       "INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)";
 
-    db.query(sql, [full_name, email, hashedPassword, role], (err, result) => {
+    db.query(sql, [full_name, email, password, role], (err, result) => {
       if (err) {
         console.error(err);
         return res.status(500).json({
@@ -41,7 +38,7 @@ const login = (req, res) => {
 
   const sql = "SELECT * FROM users WHERE email = ?";
 
-  db.query(sql, [email], async (err, results) => {
+  db.query(sql, [email], (err, results) => {
     if (err) {
       console.error(err);
 
@@ -59,10 +56,8 @@ const login = (req, res) => {
 
     const user = results[0];
 
-    // Compare passwords
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
+    // Compare passwords without encryption
+    if (password !== user.password) {
       return res.status(401).json({
         message: "Invalid email or password",
       });

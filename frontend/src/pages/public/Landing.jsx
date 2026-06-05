@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import "../../styles/dashboard.css";
 
+
 function Landing() {
   return (
     <div className="landing-page">
@@ -17,7 +18,15 @@ function Landing() {
           <a href="#features">Features</a>
           <a href="#roles">Users</a>
           <a href="#about">About</a>
-          <Link to="/login" className="login-link">Login</Link>
+
+          <Link to="/emergency-alert" className="emergency-action">
+            <span className="material-symbols-outlined">emergency</span>
+            Emergency Alert
+          </Link>
+
+          <Link to="/login" className="login-link">
+            Login
+          </Link>
         </nav>
       </header>
 
@@ -25,9 +34,7 @@ function Landing() {
         <div className="hero-content">
           <span className="badge">Smart Healthcare Support</span>
 
-          <h1>
-            Digital Care for War Injuries and Chronic Patients
-          </h1>
+          <h1>Digital Care for War Injuries and Chronic Patients</h1>
 
           <p>
             A smart medical follow-up platform that connects patients, doctors,
@@ -75,7 +82,8 @@ function Landing() {
       <section className="features-section" id="features">
         <h2>Main System Features</h2>
         <p className="section-subtitle">
-          Designed to support patients and medical teams in difficult conditions.
+          Designed to support patients and medical teams in difficult
+          conditions.
         </p>
 
         <div className="features-grid">
@@ -100,7 +108,9 @@ function Landing() {
           <div className="feature-box">
             <div className="feature-icon">🤝</div>
             <h3>NGO Assistance</h3>
-            <p>NGOs can manage and prioritize humanitarian assistance requests.</p>
+            <p>
+              NGOs can manage and prioritize humanitarian assistance requests.
+            </p>
           </div>
         </div>
       </section>
@@ -111,22 +121,32 @@ function Landing() {
         <div className="roles-grid">
           <div className="role-card">
             <h3>Patients</h3>
-            <p>Track treatments, appointments, medications, and assistance requests.</p>
+            <p>
+              Track treatments, appointments, medications, and assistance
+              requests.
+            </p>
           </div>
 
           <div className="role-card">
             <h3>Doctors</h3>
-            <p>Follow patient cases, update treatment plans, and communicate securely.</p>
+            <p>
+              Follow patient cases, update treatment plans, and communicate
+              securely.
+            </p>
           </div>
 
           <div className="role-card">
             <h3>NGOs</h3>
-            <p>Review assistance requests and coordinate humanitarian support.</p>
+            <p>
+              Review assistance requests and coordinate humanitarian support.
+            </p>
           </div>
 
           <div className="role-card">
             <h3>Admins</h3>
-            <p>Manage users, records, reports, system activity, and permissions.</p>
+            <p>
+              Manage users, records, reports, system activity, and permissions.
+            </p>
           </div>
         </div>
       </section>

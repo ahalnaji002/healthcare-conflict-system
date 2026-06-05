@@ -7,6 +7,7 @@ import PatientRegister from "./pages/public/PatientRegister";
 import JoinRequest from "./pages/public/JoinRequest";
 import ForgotPassword from "./pages/public/ForgotPassword";
 import NotFound from "./pages/public/NotFound";
+import EmergencyAlert from "./pages/public/EmergencyAlert";
 
 // Patient Pages
 import PatientLayout from "./layouts/PatientLayout";
@@ -48,7 +49,6 @@ import AdminRecords from "./pages/admin/AdminRecords";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminSettings from "./pages/admin/AdminSettings";
 
-
 function App() {
   return (
     <Routes>
@@ -57,6 +57,7 @@ function App() {
       <Route path="/patient-register" element={<PatientRegister />} />
       <Route path="/join-request" element={<JoinRequest />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/emergency-alert" element={<EmergencyAlert />} />
 
       <Route element={<PatientLayout />}>
         <Route path="/patient-dashboard" element={<PatientDashboard />} />
@@ -72,8 +73,14 @@ function App() {
       <Route element={<DoctorLayout />}>
         <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
         <Route path="/doctor-patients" element={<DoctorPatients />} />
-        <Route path="/doctor-patient-record" element={<DoctorPatientRecord />} />
-        <Route path="/doctor-update-treatment" element={<DoctorUpdateTreatment />} />
+        <Route
+          path="/doctor-patient-record"
+          element={<DoctorPatientRecord />}
+        />
+        <Route
+          path="/doctor-update-treatment"
+          element={<DoctorUpdateTreatment />}
+        />
         <Route path="/doctor-chat" element={<DoctorChat />} />
         <Route path="/doctor-profile" element={<DoctorProfile />} />
       </Route>
