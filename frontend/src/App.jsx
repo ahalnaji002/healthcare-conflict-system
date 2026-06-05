@@ -57,7 +57,7 @@ function App() {
       <Route path="/patient-register" element={<PatientRegister />} />
       <Route path="/join-request" element={<JoinRequest />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/emergency-action" element={<EmergencyAlert />} />
+      <Route path="/emergency-alert" element={<EmergencyAlert />} />
 
       <Route element={<PatientLayout />}>
         <Route path="/patient-dashboard" element={<PatientDashboard />} />

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import "../../styles/dashboard.css";
-import "../styles/landing.css";
+
 
 function Landing() {
   return (

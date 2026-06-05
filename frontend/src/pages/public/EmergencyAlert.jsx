@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import "../styles/emergencyAlert.css";
-import "../styles/auth.css";
 import "../../styles/dashboard.css";
+import "../../styles/emergencyAlert.css";
+import "../../styles/auth.css";
+
 
 function EmergencyAlert() {
   return (
