@@ -304,6 +304,7 @@
   .roles-grid {
     grid-template-columns: 1fr;
   }
+<<<<<<< HEAD
 }
 
 .emergency-action {
@@ -327,3 +328,6 @@
 .emergency-action {
   color: white !important;
 }
+=======
+}
+>>>>>>> 775220ceafd827d2a4e160e8ba57bd36af4565a8
