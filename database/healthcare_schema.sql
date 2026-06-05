@@ -21,7 +21,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '7c9c3af8-5441-11f1-9523-902e163a6ba0:1-49';
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '7c9c3af8-5441-11f1-9523-902e163a6ba0:1-60';
 
 --
 -- Table structure for table `activity_logs`
@@ -78,7 +78,7 @@ CREATE TABLE `assistance_requests` (
   `assistance_request_id` int NOT NULL AUTO_INCREMENT,
   `need_request_id` int DEFAULT NULL,
   `patient_id` int NOT NULL,
-  `admin_id` int unsigned NOT NULL,
+  `admin_id` int unsigned DEFAULT NULL,
   `ngo_id` int DEFAULT NULL,
   `doctor_id` int DEFAULT NULL,
   `request_type` varchar(100) NOT NULL,
@@ -186,7 +186,7 @@ CREATE TABLE `knex_migrations` (
   `batch` int DEFAULT NULL,
   `migration_time` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -259,6 +259,7 @@ CREATE TABLE `messages` (
   `receiver_id` int unsigned NOT NULL,
   `message_text` text NOT NULL,
   `attachment_url` varchar(255) DEFAULT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT '0',
   `sent_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`message_id`),
   KEY `sender_id` (`sender_id`),
@@ -364,7 +365,7 @@ CREATE TABLE `patient_doctor` (
   `doctor_id` int NOT NULL,
   `assigned_date` date DEFAULT (curdate()),
   PRIMARY KEY (`id`),
-  KEY `patient_id` (`patient_id`),
+  UNIQUE KEY `uq_patient_doctor` (`patient_id`,`doctor_id`),
   KEY `doctor_id` (`doctor_id`),
   CONSTRAINT `patient_doctor_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`patient_id`) ON DELETE CASCADE,
   CONSTRAINT `patient_doctor_ibfk_2` FOREIGN KEY (`doctor_id`) REFERENCES `doctors` (`doctor_id`) ON DELETE CASCADE
@@ -440,7 +441,8 @@ CREATE TABLE `resource_allocations` (
   `assistance_request_id` int NOT NULL,
   `ngo_id` int NOT NULL,
   `resource_type` enum('medication','medical_supplies','transportation','other') NOT NULL,
-  `quantity` varchar(100) DEFAULT NULL,
+  `quantity_value` decimal(10,2) DEFAULT NULL,
+  `quantity_unit` varchar(50) DEFAULT NULL,
   `notes` text,
   `target_delivery_date` date DEFAULT NULL,
   `status` enum('pending','in_progress','completed') DEFAULT 'pending',
@@ -531,4 +533,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-06-05 15:39:40
+-- Dump completed on 2026-06-05 17:59:38
