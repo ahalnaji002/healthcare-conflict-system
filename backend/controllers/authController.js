@@ -13,20 +13,13 @@ const register = async (req, res) => {
     db.query(sql, [full_name, email, password, role], (err, result) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({
-          message: "Registration failed",
-        });
+        return res.status(500).json({ message: "Registration failed" });
       }
-
-      res.status(201).json({
-        message: "User registered successfully",
-      });
+      res.status(201).json({ message: "User registered successfully" });
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      message: "Server error",
-    });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -65,12 +58,11 @@ const registerPatient = (req, res) => {
       .slice(0, 19)
       .replace("T", " ");
 
-    // 5. Insert the new patient into the users table
-    //    is_verified defaults to FALSE in the DB schema
+    // 5. Insert the new patient (is_verified defaults to FALSE, status to 'active' for patients)
     const insertSql = `
       INSERT INTO users 
-        (name, email, password, role, birth_date, is_verified, verification_code, verification_expires_at)
-      VALUES (?, ?, ?, 'patient', ?, FALSE, ?, ?)
+        (name, email, password, role, birth_date, is_verified, status, verification_code, verification_expires_at)
+      VALUES (?, ?, ?, 'patient', ?, FALSE, 'active', ?, ?)
     `;
 
     db.query(
@@ -83,10 +75,9 @@ const registerPatient = (req, res) => {
         }
 
         // 6. Return success with the verification code
-        //    (in production this would be sent by email instead)
+        // (in production this would be sent by email instead)
         return res.status(201).json({
-          message:
-            "Patient registered successfully. Please verify your account.",
+          message: "Patient registered successfully. Please verify your account.",
           user_id: result.insertId,
           verification_code: verificationCode, // dev only — remove when email is added
         });
@@ -95,9 +86,74 @@ const registerPatient = (req, res) => {
   });
 };
 
-// ================= LOGIN =================
+// ================= REGISTER STAFF =================
+const registerStaff = (req, res) => {
+  const { name, email, password, role, license } = req.body;
+
+  // 1. Validate all required fields
+  if (!name || !email || !password || !role || !license) {
+    return res.status(400).json({
+      message: "All fields are required: name, email, password, role, license",
+    });
+  }
+
+  // 2. Only allow doctor or ngo roles
+  if (role !== "doctor" && role !== "ngo") {
+    return res.status(400).json({
+      message: "Role must be either 'doctor' or 'ngo'",
+    });
+  }
+
+  // 3. Check if email is already registered
+  const checkEmailSql = "SELECT id FROM users WHERE email = ?";
+
+  db.query(checkEmailSql, [email], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (results.length > 0) {
+      return res.status(409).json({ message: "Email is already registered" });
+    }
+
+    // 4. Insert staff with status 'pending' — admin must approve before they can login
+    const insertSql = `
+      INSERT INTO users 
+        (name, email, password, role, license, is_verified, status)
+      VALUES (?, ?, ?, ?, ?, FALSE, 'pending')
+    `;
+
+    db.query(
+      insertSql,
+      [name, email, password, role, license],
+      (insertErr, result) => {
+        if (insertErr) {
+          console.error(insertErr);
+          return res.status(500).json({ message: "Registration failed" });
+        }
+
+        // 5. Return success — admin will review and approve the request
+        // (in production a confirmation email would be sent here)
+        return res.status(201).json({
+          message:
+            "Registration request submitted successfully. Please wait for admin approval.",
+          user_id: result.insertId,
+          status: "pending",
+        });
+      }
+    );
+  });
+};
+
+// ================= LOGIN (unified for all roles) =================
 const login = (req, res) => {
   const { email, password } = req.body;
+
+  // 1. Validate fields
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
 
   const sql = "SELECT * FROM users WHERE email = ?";
 
@@ -107,17 +163,39 @@ const login = (req, res) => {
       return res.status(500).json({ message: "Server error" });
     }
 
+    // 2. User not found
     if (results.length === 0) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const user = results[0];
 
+    // 3. Check password
     if (password !== user.password) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Generate JWT Token
+    // 4. Check if account is verified (is_verified must be true)
+    if (!user.is_verified) {
+      return res.status(403).json({
+        message: "Account not verified. Please verify your email first.",
+      });
+    }
+
+    // 5. Check if account is active (not pending or rejected)
+    if (user.status === "pending") {
+      return res.status(403).json({
+        message: "Account is pending admin approval. Please wait.",
+      });
+    }
+
+    if (user.status === "rejected") {
+      return res.status(403).json({
+        message: "Account has been rejected. Please contact support.",
+      });
+    }
+
+    // 6. Generate JWT Token
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
@@ -198,6 +276,7 @@ const forgotPassword = (req, res) => {
 module.exports = {
   register,
   registerPatient,
+  registerStaff,
   login,
   forgotPassword,
 };

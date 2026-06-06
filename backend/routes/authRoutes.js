@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   register,
   registerPatient,
+  registerStaff,
   login,
   forgotPassword,
 } = require("../controllers/authController");
@@ -15,7 +16,10 @@ router.post("/register", register);
 // Register Patient
 router.post("/register-patient", registerPatient);
 
-// Login
+// Register Staff (doctor or ngo)
+router.post("/register-staff", registerStaff);
+
+// Unified Login (all roles)
 router.post("/login", login);
 
 // Forgot Password
