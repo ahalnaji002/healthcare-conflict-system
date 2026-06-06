@@ -25,9 +25,19 @@ const register = async (req, res) => {
 
 // ================= REGISTER PATIENT =================
 const registerPatient = (req, res) => {
-  const { name, email, password, birth_date } = req.body;
+  const {
+    name,
+    email,
+    password,
+    birth_date,
+    national_id,
+    phone,
+    gender,
+    address,
+    medical_condition,
+  } = req.body;
 
-  // 1. Validate all required fields are present
+  // 1. Validate required fields (optional fields are allowed to be empty)
   if (!name || !email || !password || !birth_date) {
     return res.status(400).json({
       message: "All fields are required: name, email, password, birth_date",
@@ -58,16 +68,26 @@ const registerPatient = (req, res) => {
       .slice(0, 19)
       .replace("T", " ");
 
-    // 5. Insert the new patient (is_verified defaults to FALSE, status to 'active' for patients)
+    // 5. Insert the new patient with all fields
     const insertSql = `
       INSERT INTO users 
-        (name, email, password, role, birth_date, is_verified, status, verification_code, verification_expires_at)
-      VALUES (?, ?, ?, 'patient', ?, FALSE, 'active', ?, ?)
+        (name, email, password, role, birth_date, national_id, phone, gender,
+         address, medical_condition, is_verified, status, verification_code, verification_expires_at)
+      VALUES (?, ?, ?, 'patient', ?, ?, ?, ?, ?, ?, FALSE, 'active', ?, ?)
     `;
 
     db.query(
       insertSql,
-      [name, email, password, birth_date, verificationCode, expiresAt],
+      [
+        name, email, password, birth_date,
+        national_id || null,
+        phone || null,
+        gender || null,
+        address || null,
+        medical_condition || null,
+        verificationCode,
+        expiresAt,
+      ],
       (insertErr, result) => {
         if (insertErr) {
           console.error(insertErr);
