@@ -332,9 +332,58 @@ const forgotPassword = (req, res) => {
   });
 };
 
+// ================= GET PROFILE =================
+const getProfile = (req, res) => {
+  // req.user is set by the verifyToken middleware (contains id and role)
+  const userId = req.user.id;
+
+  const sql = "SELECT id, full_name, email, phone, role, status, is_verified, created_at FROM users WHERE id = ?";
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = results[0];
+
+    // Only allow active and verified accounts
+    if (!user.is_verified) {
+      return res.status(403).json({
+        message: "Account not verified.",
+      });
+    }
+
+    if (user.status !== "active") {
+      return res.status(403).json({
+        message: "Account is not active.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Profile fetched successfully",
+      user: {
+        id: user.id,
+        name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        status: user.status,
+        is_verified: user.is_verified,
+        created_at: user.created_at,
+      },
+    });
+  });
+};
+
 module.exports = {
   registerPatient,
   registerStaff,
   login,
   forgotPassword,
+  getProfile,
 };

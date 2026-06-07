@@ -6,6 +6,7 @@ const {
   registerStaff,
   login,
   forgotPassword,
+  getProfile,
 } = require("../controllers/authController");
 const verifyToken = require("../middleware/authMiddleware");
 
@@ -21,12 +22,7 @@ router.post("/login", login);
 // Forgot Password
 router.post("/forgot-password", forgotPassword);
 
-// Protected test route
-router.get("/profile", verifyToken, (req, res) => {
-  res.json({
-    message: "Access granted",
-    user: req.user,
-  });
-});
+// Get Current User Profile (protected)
+router.get("/profile", verifyToken, getProfile);
 
 module.exports = router;
