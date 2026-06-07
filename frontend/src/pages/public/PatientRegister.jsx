@@ -1,10 +1,39 @@
 import { Link } from "react-router-dom";
 import "../../styles/dashboard.css";
+import API from "../../services/api";
+import { useState } from "react";
 
 function PatientRegister() {
-  const handleSubmit = (e) => {
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Registration request sent. This is a UI prototype.");
+
+    const form = e.target;
+
+    if (form.password.value !== form.confirmPassword.value) {
+      setMessage("Passwords do not match");
+      return;
+    }
+
+    try {
+      const res = await API.post("/auth/register-patient", {
+        name: form.fullName.value,
+        email: form.email.value,
+        password: form.password.value,
+        birth_date: form.dob.value,
+        national_id: form.patientId.value,
+        phone: form.phone.value,
+        gender: form.gender.value,
+        address: form.address.value,
+        medical_condition: form.condition.value,
+      });
+
+      setMessage(res.data.message || "Registration successful");
+    } catch (err) {
+      console.log("REGISTER ERROR:", err.response?.data);
+      setMessage(err.response?.data?.message || "Registration failed");
+    }
   };
 
   return (
@@ -163,6 +192,11 @@ function PatientRegister() {
                   </span>
                 </label>
 
+                {message && (
+                  <p style={{ color: "green", marginBottom: "10px" }}>
+                    {message}
+                  </p>
+                )}
                 <button type="submit" className="submit-btn">
                   Create Account
                 </button>
