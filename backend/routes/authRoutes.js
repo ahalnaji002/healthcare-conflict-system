@@ -2,16 +2,12 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  register,
   registerPatient,
   registerStaff,
   login,
   forgotPassword,
 } = require("../controllers/authController");
 const verifyToken = require("../middleware/authMiddleware");
-
-// Old register (kept for reference)
-router.post("/register", register);
 
 // Register Patient
 router.post("/register-patient", registerPatient);

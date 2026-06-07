@@ -1,11 +1,32 @@
 import { Link } from "react-router-dom";
 import "../../styles/dashboard.css";
+import API from "../../services/api";
+import { useState } from "react";
 
 function PatientRegister() {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("Registration request sent. This is a UI prototype.");
-  };
+  const [message, setMessage] = useState("");
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const res = await API.post("/auth/register-patient", {
+      name: e.target.fullName.value,
+      email: e.target.email.value,
+      password: e.target.password.value,
+      birth_date: e.target.dob.value,
+      national_id: e.target.patientId.value,
+      phone: e.target.phone.value,
+      gender: e.target.gender.value,
+      address: e.target.address.value,
+      medical_condition: e.target.condition.value,
+    });
+
+    setMessage(res.data.message);
+  } catch (err) {
+    setMessage(err.response?.data?.message || "Registration failed");
+  }
+};
 
   return (
     <div className="form-page">
@@ -163,6 +184,7 @@ function PatientRegister() {
                   </span>
                 </label>
 
+                {message && <p style={{ color: "green", marginBottom: "10px" }}>{message}</p>}
                 <button type="submit" className="submit-btn">
                   Create Account
                 </button>
