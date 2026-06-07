@@ -8,31 +8,37 @@ function JoinRequest() {
   const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const res = await API.post("/auth/register-staff", {
-      name: e.target.fullName.value,
-      email: e.target.email.value,
-      password: e.target.password.value,
-      role: role,
-      phone: e.target.phone.value,
-      address: e.target.address.value,
-      license: role === "doctor" ? e.target.license.value : null,
-      hospital: role === "doctor" ? e.target.organization.value : null,
-      specialization: role === "doctor" ? e.target.specialization.value : null,
-      experience: role === "doctor" ? e.target.experience.value : null,
-      ngo_name: role === "ngo" ? e.target.organization.value : null,
-      ngo_field: role === "ngo" ? e.target.specialization.value : null,
-      registration_number: role === "ngo" ? e.target.license.value : null,
-      services_description: role === "ngo" ? e.target.experience.value : null,
-    });
+    if (e.target.password.value !== e.target.confirmPassword.value) {
+      setMessage("Passwords do not match");
+      return;
+    }
 
-    setMessage(res.data.message);
-  } catch (err) {
-    setMessage(err.response?.data?.message || "Registration failed");
-  }
-};
+    try {
+      const res = await API.post("/auth/register-staff", {
+        name: e.target.fullName.value,
+        email: e.target.email.value,
+        password: e.target.password.value,
+        role: role,
+        phone: e.target.phone.value,
+        address: e.target.address.value,
+        license: role === "doctor" ? e.target.license.value : null,
+        hospital: role === "doctor" ? e.target.organization.value : null,
+        specialization:
+          role === "doctor" ? e.target.specialization.value : null,
+        experience: role === "doctor" ? e.target.experience.value : null,
+        ngo_name: role === "ngo" ? e.target.organization.value : null,
+        ngo_field: role === "ngo" ? e.target.specialization.value : null,
+        registration_number: role === "ngo" ? e.target.license.value : null,
+        services_description: role === "ngo" ? e.target.experience.value : null,
+      });
+
+      setMessage(res.data.message);
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Registration failed");
+    }
+  };
 
   return (
     <div className="form-page">
@@ -301,7 +307,11 @@ function JoinRequest() {
                   </span>
                 </label>
 
-                {message && <p style={{ color: "green", marginBottom: "10px" }}>{message}</p>}
+                {message && (
+                  <p style={{ color: "green", marginBottom: "10px" }}>
+                    {message}
+                  </p>
+                )}
                 <button type="submit" className="submit-btn">
                   Submit Request
                 </button>

@@ -8,6 +8,7 @@ const {
   forgotPassword,
   getProfile,
 } = require("../controllers/authController");
+
 const verifyToken = require("../middleware/authMiddleware");
 
 // Register Patient

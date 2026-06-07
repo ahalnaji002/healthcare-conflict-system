@@ -5,34 +5,60 @@ import "../../styles/dashboard.css";
 
 function Login() {
   const [selectedRole, setSelectedRole] = useState("patient");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const [message, setMessage] = useState("");
+  const handleLogin = async (e) => {
+    e.preventDefault();
 
-const handleLogin = async (e) => {
-  e.preventDefault();
+    const email = e.target.email.value;
+    const password = e.target.password.value;
 
-  try {
-    const res = await API.post("/auth/login", {
-      email: e.target[0].value,
-      password: e.target[1].value,
-    });
+    if (!email || !password) {
+      setMessage("Email and password are required");
+      return;
+    }
 
-    // Save token to localStorage
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
+    try {
+      setLoading(true);
+      setMessage("");
 
-    // Navigate based on role from backend response
-    const role = res.data.user.role;
-    if (role === "patient") navigate("/patient-dashboard");
-    else if (role === "doctor") navigate("/doctor-dashboard");
-    else if (role === "ngo") navigate("/ngo-dashboard");
-    else if (role === "admin") navigate("/admin-dashboard");
+      const res = await API.post("/auth/login", {
+        email,
+        password,
+      });
 
-  } catch (err) {
-    setMessage(err.response?.data?.message || "Login failed");
-  }
-};
+      const { token, user } = res.data;
+
+      if (user.role !== selectedRole) {
+        setMessage(
+          `This account is registered as ${user.role}, not ${selectedRole}.`,
+        );
+        return;
+      }
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      if (user.role === "patient") {
+        navigate("/patient-dashboard");
+      } else if (user.role === "doctor") {
+        navigate("/doctor-dashboard");
+      } else if (user.role === "ngo") {
+        navigate("/ngo-dashboard");
+      } else if (user.role === "admin") {
+        navigate("/admin-dashboard");
+      } else {
+        setMessage("Unknown user role");
+      }
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-page">
@@ -153,7 +179,13 @@ const handleLogin = async (e) => {
               <label>Email Address</label>
               <div className="input-wrapper">
                 <span className="material-symbols-outlined">mail</span>
-                <input type="email" placeholder="Enter your email address" />
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  required
+                />
               </div>
             </div>
 
@@ -165,13 +197,26 @@ const handleLogin = async (e) => {
 
               <div className="input-wrapper">
                 <span className="material-symbols-outlined">lock</span>
-                <input type="password" placeholder="Enter your password" />
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  required
+                />
               </div>
             </div>
 
-            {message && <p style={{ color: "red", marginBottom: "10px" }}>{message}</p>}
-            <button type="submit" className="auth-primary-btn">
-              Secure Login
+            {message && (
+              <p style={{ color: "red", marginBottom: "10px" }}>{message}</p>
+            )}
+
+            <button
+              type="submit"
+              className="auth-primary-btn"
+              disabled={loading}
+            >
+              {loading ? "Logging in..." : "Secure Login"}
             </button>
           </form>
 

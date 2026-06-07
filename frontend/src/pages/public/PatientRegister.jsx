@@ -6,27 +6,34 @@ import { useState } from "react";
 function PatientRegister() {
   const [message, setMessage] = useState("");
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    const res = await API.post("/auth/register-patient", {
-      name: e.target.fullName.value,
-      email: e.target.email.value,
-      password: e.target.password.value,
-      birth_date: e.target.dob.value,
-      national_id: e.target.patientId.value,
-      phone: e.target.phone.value,
-      gender: e.target.gender.value,
-      address: e.target.address.value,
-      medical_condition: e.target.condition.value,
-    });
+    const form = e.target;
 
-    setMessage(res.data.message);
-  } catch (err) {
-    setMessage(err.response?.data?.message || "Registration failed");
-  }
-};
+    if (form.password.value !== form.confirmPassword.value) {
+      setMessage("Passwords do not match");
+      return;
+    }
+
+    try {
+      const res = await API.post("/auth/register-patient", {
+        name: e.target.fullName.value,
+        email: e.target.email.value,
+        password: e.target.password.value,
+        birth_date: e.target.dob.value,
+        national_id: e.target.patientId.value,
+        phone: e.target.phone.value,
+        gender: e.target.gender.value,
+        address: e.target.address.value,
+        medical_condition: e.target.condition.value,
+      });
+
+      setMessage(res.data.message);
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Registration failed");
+    }
+  };
 
   return (
     <div className="form-page">
@@ -184,7 +191,11 @@ const handleSubmit = async (e) => {
                   </span>
                 </label>
 
-                {message && <p style={{ color: "green", marginBottom: "10px" }}>{message}</p>}
+                {message && (
+                  <p style={{ color: "green", marginBottom: "10px" }}>
+                    {message}
+                  </p>
+                )}
                 <button type="submit" className="submit-btn">
                   Create Account
                 </button>
