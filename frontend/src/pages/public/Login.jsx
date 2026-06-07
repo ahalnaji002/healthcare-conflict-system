@@ -1,3 +1,4 @@
+import API from "../../services/api";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import "../../styles/dashboard.css";
@@ -6,19 +7,32 @@ function Login() {
   const [selectedRole, setSelectedRole] = useState("patient");
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+  const [message, setMessage] = useState("");
 
-    if (selectedRole === "patient") {
-      navigate("/patient-dashboard");
-    } else if (selectedRole === "doctor") {
-      navigate("/doctor-dashboard");
-    } else if (selectedRole === "ngo") {
-      navigate("/ngo-dashboard");
-    } else if (selectedRole === "admin") {
-      navigate("/admin-dashboard");
-    }
-  };
+const handleLogin = async (e) => {
+  e.preventDefault();
+
+  try {
+    const res = await API.post("/auth/login", {
+      email: e.target[0].value,
+      password: e.target[1].value,
+    });
+
+    // Save token to localStorage
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("user", JSON.stringify(res.data.user));
+
+    // Navigate based on role from backend response
+    const role = res.data.user.role;
+    if (role === "patient") navigate("/patient-dashboard");
+    else if (role === "doctor") navigate("/doctor-dashboard");
+    else if (role === "ngo") navigate("/ngo-dashboard");
+    else if (role === "admin") navigate("/admin-dashboard");
+
+  } catch (err) {
+    setMessage(err.response?.data?.message || "Login failed");
+  }
+};
 
   return (
     <div className="auth-page">
@@ -155,6 +169,7 @@ function Login() {
               </div>
             </div>
 
+            {message && <p style={{ color: "red", marginBottom: "10px" }}>{message}</p>}
             <button type="submit" className="auth-primary-btn">
               Secure Login
             </button>
