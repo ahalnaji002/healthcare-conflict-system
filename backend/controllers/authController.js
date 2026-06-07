@@ -15,14 +15,12 @@ const registerPatient = (req, res) => {
     medical_condition,
   } = req.body;
 
-  // 1. Validate required fields
   if (!name || !email || !password || !birth_date) {
     return res.status(400).json({
       message: "All fields are required: name, email, password, birth_date",
     });
   }
 
-  // 2. Check if email already exists
   const checkEmailSql = "SELECT id FROM users WHERE email = ?";
 
   db.query(checkEmailSql, [email], (err, results) => {
@@ -35,9 +33,9 @@ const registerPatient = (req, res) => {
       return res.status(409).json({ message: "Email is already registered" });
     }
 
-    // 3. Insert into users table first
     const insertUserSql = `
-      INSERT INTO users (full_name, email, password, phone, role, status, is_verified)
+      INSERT INTO users 
+        (full_name, email, password, phone, role, status, is_verified)
       VALUES (?, ?, ?, ?, 'patient', 'active', 0)
     `;
 
@@ -52,12 +50,11 @@ const registerPatient = (req, res) => {
 
         const userId = userResult.insertId;
 
-        // 4. Insert into patients table
         const insertPatientSql = `
-        INSERT INTO patients 
-          (user_id, national_id, date_of_birth, gender, address, medical_condition)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `;
+          INSERT INTO patients 
+            (user_id, national_id, date_of_birth, gender, address, medical_condition)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `;
 
         db.query(
           insertPatientSql,
@@ -75,7 +72,6 @@ const registerPatient = (req, res) => {
               return res.status(500).json({ message: "Registration failed" });
             }
 
-            // 5. Generate 6-digit verification code
             const verificationCode = Math.floor(
               100000 + Math.random() * 900000,
             ).toString();
@@ -85,11 +81,11 @@ const registerPatient = (req, res) => {
               .slice(0, 19)
               .replace("T", " ");
 
-            // 6. Insert into verification_codes table
             const insertCodeSql = `
-            INSERT INTO verification_codes (user_id, code, purpose, expires_at)
-            VALUES (?, ?, 'patient_register', ?)
-          `;
+              INSERT INTO verification_codes 
+                (user_id, code, purpose, expires_at)
+              VALUES (?, ?, 'patient_register', ?)
+            `;
 
             db.query(
               insertCodeSql,
@@ -102,13 +98,11 @@ const registerPatient = (req, res) => {
                     .json({ message: "Registration failed" });
                 }
 
-                // 7. Return success
-                // (in production the code would be sent by email)
                 return res.status(201).json({
                   message:
                     "Patient registered successfully. Please verify your account.",
                   user_id: userId,
-                  verification_code: verificationCode, // dev only
+                  verification_code: verificationCode,
                 });
               },
             );
@@ -128,33 +122,28 @@ const registerStaff = (req, res) => {
     role,
     phone,
     address,
-    // Doctor specific
     hospital,
     specialization,
     license,
     experience,
-    // NGO specific
     ngo_name,
     ngo_field,
     registration_number,
     services_description,
   } = req.body;
 
-  // 1. Validate required fields
   if (!name || !email || !password || !role) {
     return res.status(400).json({
       message: "All fields are required: name, email, password, role",
     });
   }
 
-  // 2. Only allow doctor or ngo
   if (role !== "doctor" && role !== "ngo") {
     return res.status(400).json({
       message: "Role must be either 'doctor' or 'ngo'",
     });
   }
 
-  // 3. Validate role-specific required fields
   if (role === "doctor" && !license) {
     return res.status(400).json({
       message: "Medical license number is required for doctors",
@@ -167,7 +156,6 @@ const registerStaff = (req, res) => {
     });
   }
 
-  // 4. Check if email already exists in join_requests
   const checkEmailSql =
     "SELECT join_request_id FROM join_requests WHERE email = ?";
 
@@ -178,12 +166,11 @@ const registerStaff = (req, res) => {
     }
 
     if (results.length > 0) {
-      return res
-        .status(409)
-        .json({ message: "A request with this email already exists" });
+      return res.status(409).json({
+        message: "A request with this email already exists",
+      });
     }
 
-    // 5. Insert into join_requests table
     const insertSql = `
       INSERT INTO join_requests
         (request_type, name, email, phone, specialty, license_number,
@@ -191,7 +178,6 @@ const registerStaff = (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
     `;
 
-    // Map fields based on role
     const specialty = role === "doctor" ? specialization : ngo_field;
     const licenseNumber = role === "doctor" ? license : registration_number;
     const orgType = role === "doctor" ? hospital : ngo_name;
@@ -230,7 +216,6 @@ const registerStaff = (req, res) => {
 const login = (req, res) => {
   const { email, password } = req.body;
 
-  // 1. Validate fields
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password are required" });
   }
@@ -243,26 +228,22 @@ const login = (req, res) => {
       return res.status(500).json({ message: "Server error" });
     }
 
-    // 2. User not found
     if (results.length === 0) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const user = results[0];
 
-    // 3. Check password
     if (password !== user.password) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // 4. Check if account is verified
     if (!user.is_verified) {
       return res.status(403).json({
         message: "Account not verified. Please verify your email first.",
       });
     }
 
-    // 5. Check account status
     if (user.status === "pending") {
       return res.status(403).json({
         message: "Account is pending admin approval. Please wait.",
@@ -281,14 +262,13 @@ const login = (req, res) => {
       });
     }
 
-    // 6. Generate JWT Token
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Login successful",
       token,
       user: {
@@ -317,7 +297,6 @@ const forgotPassword = (req, res) => {
       return res.status(500).json({ message: "Server error" });
     }
 
-    // Same message whether found or not (security best practice)
     if (results.length === 0) {
       return res.status(200).json({
         message: "If this email is registered, a reset code has been sent.",
@@ -333,9 +312,9 @@ const forgotPassword = (req, res) => {
       .slice(0, 19)
       .replace("T", " ");
 
-    // Store in verification_codes table
     const insertSql = `
-      INSERT INTO verification_codes (user_id, code, purpose, expires_at)
+      INSERT INTO verification_codes 
+        (user_id, code, purpose, expires_at)
       VALUES (?, ?, 'patient_register', ?)
     `;
 
@@ -349,14 +328,14 @@ const forgotPassword = (req, res) => {
 
       return res.status(200).json({
         message: "If this email is registered, a reset code has been sent.",
-        reset_code: resetCode, // dev only
+        reset_code: resetCode,
       });
     });
   });
 };
 
-// ================= GET PATIENT PROFILE =================
-const getPatientProfile = (req, res) => {
+// ================= GET PROFILE =================
+const getProfile = (req, res) => {
   const userId = req.user.id;
 
   const sql = `
@@ -367,19 +346,24 @@ const getPatientProfile = (req, res) => {
       users.phone,
       users.role,
       users.status,
+      users.is_verified,
+      users.created_at,
+
       patients.patient_id,
       patients.national_id,
       patients.date_of_birth,
       patients.gender,
       patients.address,
       patients.city,
+      patients.location,
       patients.blood_type,
       patients.chronic_diseases,
       patients.medical_condition,
       patients.emergency_contact
+
     FROM users
-    JOIN patients ON users.id = patients.user_id
-    WHERE users.id = ? AND users.role = 'patient'
+    LEFT JOIN patients ON users.id = patients.user_id
+    WHERE users.id = ?
   `;
 
   db.query(sql, [userId], (err, results) => {
@@ -389,12 +373,47 @@ const getPatientProfile = (req, res) => {
     }
 
     if (results.length === 0) {
-      return res.status(404).json({ message: "Patient profile not found" });
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = results[0];
+
+    if (!user.is_verified) {
+      return res.status(403).json({
+        message: "Account not verified.",
+      });
+    }
+
+    if (user.status !== "active") {
+      return res.status(403).json({
+        message: "Account is not active.",
+      });
     }
 
     return res.status(200).json({
-      message: "Patient profile loaded successfully",
-      patient: results[0],
+      message: "Profile fetched successfully",
+      user: {
+        id: user.id,
+        name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        status: user.status,
+        is_verified: user.is_verified,
+        created_at: user.created_at,
+
+        patient_id: user.patient_id,
+        national_id: user.national_id,
+        date_of_birth: user.date_of_birth,
+        gender: user.gender,
+        address: user.address,
+        city: user.city,
+        location: user.location,
+        blood_type: user.blood_type,
+        chronic_diseases: user.chronic_diseases,
+        medical_condition: user.medical_condition,
+        emergency_contact: user.emergency_contact,
+      },
     });
   });
 };
@@ -404,5 +423,5 @@ module.exports = {
   registerStaff,
   login,
   forgotPassword,
-  getPatientProfile,
+  getProfile,
 };

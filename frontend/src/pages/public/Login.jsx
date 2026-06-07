@@ -1,7 +1,7 @@
+import API from "../../services/api";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import "../../styles/dashboard.css";
-import API from "../../services/api";
 
 function Login() {
   const [selectedRole, setSelectedRole] = useState("patient");
