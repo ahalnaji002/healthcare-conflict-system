@@ -1,27 +1,21 @@
 const db = require("../config/db");
-// const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// ================= REGISTER =================
+// ================= REGISTER (old - kept for reference) =================
 const register = async (req, res) => {
   const { full_name, email, password } = req.body;
   const role = "patient";
 
   try {
     const sql =
-      "INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)";
+      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)";
 
     db.query(sql, [full_name, email, password, role], (err, result) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({
-          message: "Registration failed",
-        });
+        return res.status(500).json({ message: "Registration failed" });
       }
-
-      res.status(201).json({
-        message: "User registered successfully",
-      });
+      res.status(201).json({ message: "User registered successfully" });
     });
   } catch (error) {
     console.error(error);
@@ -30,21 +24,10 @@ const register = async (req, res) => {
 };
 
 // ================= REGISTER PATIENT =================
-// ================= REGISTER PATIENT Ahmed-Hashem  =================
 const registerPatient = (req, res) => {
-  const {
-    name,
-    email,
-    password,
-    birth_date,
-    national_id,
-    phone,
-    gender,
-    address,
-    medical_condition,
-  } = req.body;
+  const { name, email, password, birth_date } = req.body;
 
-  // 1. Validate required fields
+  // 1. Validate all required fields are present
   if (!name || !email || !password || !birth_date) {
     return res.status(400).json({
       message: "All fields are required: name, email, password, birth_date",
@@ -64,244 +47,159 @@ const registerPatient = (req, res) => {
       return res.status(409).json({ message: "Email is already registered" });
     }
 
-    // 3. Generate verification code
+    // 3. Generate a 6-digit verification code
     const verificationCode = Math.floor(
-      100000 + Math.random() * 900000,
+      100000 + Math.random() * 900000
     ).toString();
 
+    // 4. Set code expiry to 15 minutes from now
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
       .toISOString()
       .slice(0, 19)
       .replace("T", " ");
 
-    // 4. Insert account data into users
-    const insertUserSql = `
+    // 5. Insert the new patient (is_verified defaults to FALSE, status to 'active' for patients)
+    const insertSql = `
       INSERT INTO users 
-        (full_name, email, password, phone, role, status, is_verified, verification_code, verification_expires_at)
-      VALUES (?, ?, ?, ?, 'patient', 'active', FALSE, ?, ?)
+        (name, email, password, role, birth_date, is_verified, status, verification_code, verification_expires_at)
+      VALUES (?, ?, ?, 'patient', ?, FALSE, 'active', ?, ?)
     `;
 
     db.query(
-      insertUserSql,
-      [name, email, password, phone || null, verificationCode, expiresAt],
-      (insertUserErr, userResult) => {
-        if (insertUserErr) {
-          console.error(insertUserErr);
-          return res.status(500).json({ message: "User registration failed" });
+      insertSql,
+      [name, email, password, birth_date, verificationCode, expiresAt],
+      (insertErr, result) => {
+        if (insertErr) {
+          console.error(insertErr);
+          return res.status(500).json({ message: "Registration failed" });
         }
 
-        const userId = userResult.insertId;
-
-        // 5. Insert patient-specific data into patients
-        const insertPatientSql = `
-          INSERT INTO patients
-            (user_id, national_id, date_of_birth, gender, address, medical_condition)
-          VALUES (?, ?, ?, ?, ?, ?)
-        `;
-
-        db.query(
-          insertPatientSql,
-          [
-            userId,
-            national_id || null,
-            birth_date,
-            gender || null,
-            address || null,
-            medical_condition || null,
-          ],
-          (insertPatientErr) => {
-            if (insertPatientErr) {
-              console.error(insertPatientErr);
-              return res.status(500).json({
-                message: "Patient profile creation failed",
-              });
-            }
-
-            return res.status(201).json({
-              message:
-                "Patient registered successfully. Please verify your account.",
-              user_id: userId,
-              verification_code: verificationCode,
-            });
-          },
-        );
-      },
+        // 6. Return success with the verification code
+        // (in production this would be sent by email instead)
+        return res.status(201).json({
+          message: "Patient registered successfully. Please verify your account.",
+          user_id: result.insertId,
+          verification_code: verificationCode, // dev only — remove when email is added
+        });
+      }
     );
   });
 };
 
 // ================= REGISTER STAFF =================
-// ================= REGISTER STAFF REQUEST Ahmed-Hashem =================
 const registerStaff = (req, res) => {
-  const {
-    name,
-    email,
-    password,
-    role,
-    phone,
-    address,
-    license,
-    hospital,
-    specialization,
-    experience,
-    ngo_name,
-    ngo_field,
-    registration_number,
-    services_description,
-  } = req.body;
+  const { name, email, password, role, license } = req.body;
 
-  // 1. Validate required fields
-  if (!name || !email || !password || !role) {
+  // 1. Validate all required fields
+  if (!name || !email || !password || !role || !license) {
     return res.status(400).json({
-      message: "All fields are required: name, email, password, role",
+      message: "All fields are required: name, email, password, role, license",
     });
   }
 
-  // 2. Only allow doctor or ngo
+  // 2. Only allow doctor or ngo roles
   if (role !== "doctor" && role !== "ngo") {
     return res.status(400).json({
       message: "Role must be either 'doctor' or 'ngo'",
     });
   }
 
-  // 3. Validate role-specific required fields
-  if (role === "doctor" && !license) {
-    return res.status(400).json({
-      message: "Medical license number is required for doctors",
-    });
-  }
+  // 3. Check if email is already registered
+  const checkEmailSql = "SELECT id FROM users WHERE email = ?";
 
-  if (role === "ngo" && !registration_number) {
-    return res.status(400).json({
-      message: "Registration number is required for NGOs",
-    });
-  }
-
-  // 4. Check if email already exists in users
-  const checkUserSql = "SELECT id FROM users WHERE email = ?";
-
-  db.query(checkUserSql, [email], (userErr, userResults) => {
-    if (userErr) {
-      console.error(userErr);
+  db.query(checkEmailSql, [email], (err, results) => {
+    if (err) {
+      console.error(err);
       return res.status(500).json({ message: "Server error" });
     }
 
-    if (userResults.length > 0) {
-      return res.status(409).json({
-        message: "Email is already registered",
-      });
+    if (results.length > 0) {
+      return res.status(409).json({ message: "Email is already registered" });
     }
 
-    // 5. Check if email already has a pending join request
-    const checkRequestSql =
-      "SELECT join_request_id FROM join_requests WHERE email = ? AND status = 'pending'";
+    // 4. Insert staff with status 'pending' — admin must approve before they can login
+    const insertSql = `
+      INSERT INTO users 
+        (name, email, password, role, license, is_verified, status)
+      VALUES (?, ?, ?, ?, ?, FALSE, 'pending')
+    `;
 
-    db.query(checkRequestSql, [email], (requestErr, requestResults) => {
-      if (requestErr) {
-        console.error(requestErr);
-        return res.status(500).json({ message: "Server error" });
-      }
+    db.query(
+      insertSql,
+      [name, email, password, role, license],
+      (insertErr, result) => {
+        if (insertErr) {
+          console.error(insertErr);
+          return res.status(500).json({ message: "Registration failed" });
+        }
 
-      if (requestResults.length > 0) {
-        return res.status(409).json({
-          message: "You already have a pending join request",
+        // 5. Return success — admin will review and approve the request
+        // (in production a confirmation email would be sent here)
+        return res.status(201).json({
+          message:
+            "Registration request submitted successfully. Please wait for admin approval.",
+          user_id: result.insertId,
+          status: "pending",
         });
       }
-
-      // 6. Prepare data based on role
-      const requestType = role;
-
-      const requestSpecialty = role === "doctor" ? specialization : ngo_field;
-
-      const requestLicenseNumber =
-        role === "doctor" ? license : registration_number;
-
-      const requestOrganizationType = role === "doctor" ? hospital : ngo_name;
-
-      const requestDescription =
-        role === "doctor" ? experience : services_description;
-
-      // 7. Insert into join_requests
-      const insertSql = `
-        INSERT INTO join_requests
-          (request_type, name, email, password, phone, specialty, license_number,
-           organization_type, description, document_url, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
-      `;
-
-      db.query(
-        insertSql,
-        [
-          requestType,
-          name,
-          email,
-          password,
-          phone || null,
-          requestSpecialty || null,
-          requestLicenseNumber || null,
-          requestOrganizationType || null,
-          requestDescription || null,
-          null,
-        ],
-        (insertErr, result) => {
-          if (insertErr) {
-            console.error(insertErr);
-            return res.status(500).json({
-              message: "Join request submission failed",
-            });
-          }
-
-          return res.status(201).json({
-            message:
-              "Join request submitted successfully. Please wait for admin approval.",
-            join_request_id: result.insertId,
-            status: "pending",
-          });
-        },
-      );
-    });
+    );
   });
 };
 
-// ================= LOGIN =================
+// ================= LOGIN (unified for all roles) =================
 const login = (req, res) => {
   const { email, password } = req.body;
+
+  // 1. Validate fields
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
 
   const sql = "SELECT * FROM users WHERE email = ?";
 
   db.query(sql, [email], (err, results) => {
     if (err) {
       console.error(err);
-
-      return res.status(500).json({
-        message: "Server error",
-      });
+      return res.status(500).json({ message: "Server error" });
     }
 
-    // User not found
+    // 2. User not found
     if (results.length === 0) {
-      return res.status(401).json({
-        message: "Invalid email or password",
-      });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const user = results[0];
 
-    // Compare passwords without encryption
+    // 3. Check password
     if (password !== user.password) {
-      return res.status(401).json({
-        message: "Invalid email or password",
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    // 4. Check if account is verified (is_verified must be true)
+    if (!user.is_verified) {
+      return res.status(403).json({
+        message: "Account not verified. Please verify your email first.",
       });
     }
 
-    // Generate JWT Token
+    // 5. Check if account is active (not pending or rejected)
+    if (user.status === "pending") {
+      return res.status(403).json({
+        message: "Account is pending admin approval. Please wait.",
+      });
+    }
+
+    if (user.status === "rejected") {
+      return res.status(403).json({
+        message: "Account has been rejected. Please contact support.",
+      });
+    }
+
+    // 6. Generate JWT Token
     const token = jwt.sign(
-      {
-        id: user.id,
-        role: user.role,
-      },
+      { id: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" },
+      { expiresIn: "7d" }
     );
 
     res.status(200).json({
@@ -309,7 +207,7 @@ const login = (req, res) => {
       token,
       user: {
         id: user.id,
-        name: user.full_name,
+        name: user.name,
         email: user.email,
         role: user.role,
       },
@@ -317,7 +215,68 @@ const login = (req, res) => {
   });
 };
 
+// ================= FORGOT PASSWORD =================
+const forgotPassword = (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
+
+  const findUserSql = "SELECT * FROM users WHERE email = ?";
+
+  db.query(findUserSql, [email], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    // Same message whether found or not (security best practice)
+    if (results.length === 0) {
+      return res.status(200).json({
+        message: "If this email is registered, a reset code has been sent.",
+      });
+    }
+
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
+      .toISOString()
+      .slice(0, 19)
+      .replace("T", " ");
+
+    const deleteSql = "DELETE FROM password_reset_tokens WHERE email = ?";
+
+    db.query(deleteSql, [email], (deleteErr) => {
+      if (deleteErr) {
+        console.error(deleteErr);
+        return res.status(500).json({ message: "Server error" });
+      }
+
+      const insertSql =
+        "INSERT INTO password_reset_tokens (email, token, expires_at) VALUES (?, ?, ?)";
+
+      db.query(insertSql, [email, resetCode, expiresAt], (insertErr) => {
+        if (insertErr) {
+          console.error(insertErr);
+          return res.status(500).json({ message: "Server error" });
+        }
+
+        console.log(`Reset code for ${email}: ${resetCode}`);
+
+        return res.status(200).json({
+          message: "If this email is registered, a reset code has been sent.",
+          reset_code: resetCode, // dev only — remove when email is added
+        });
+      });
+    });
+  });
+};
+
 module.exports = {
   register,
+  registerPatient,
+  registerStaff,
   login,
+  forgotPassword,
 };
