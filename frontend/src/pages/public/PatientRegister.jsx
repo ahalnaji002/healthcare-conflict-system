@@ -9,29 +9,21 @@ function PatientRegister() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const form = e.target;
-
-    if (form.password.value !== form.confirmPassword.value) {
-      setMessage("Passwords do not match");
-      return;
-    }
-
     try {
       const res = await API.post("/auth/register-patient", {
-        name: form.fullName.value,
-        email: form.email.value,
-        password: form.password.value,
-        birth_date: form.dob.value,
-        national_id: form.patientId.value,
-        phone: form.phone.value,
-        gender: form.gender.value,
-        address: form.address.value,
-        medical_condition: form.condition.value,
+        name: e.target.fullName.value,
+        email: e.target.email.value,
+        password: e.target.password.value,
+        birth_date: e.target.dob.value,
+        national_id: e.target.patientId.value,
+        phone: e.target.phone.value,
+        gender: e.target.gender.value,
+        address: e.target.address.value,
+        medical_condition: e.target.condition.value,
       });
 
-      setMessage(res.data.message || "Registration successful");
+      setMessage(res.data.message);
     } catch (err) {
-      console.log("REGISTER ERROR:", err.response?.data);
       setMessage(err.response?.data?.message || "Registration failed");
     }
   };
