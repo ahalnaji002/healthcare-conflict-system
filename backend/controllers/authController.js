@@ -108,12 +108,29 @@ const registerPatient = (req, res) => {
 
 // ================= REGISTER STAFF =================
 const registerStaff = (req, res) => {
-  const { name, email, password, role, license } = req.body;
+  const {
+    name,
+    email,
+    password,
+    role,
+    phone,
+    address,
+    // Doctor specific fields
+    hospital,
+    specialization,
+    license,
+    experience,
+    // NGO specific fields
+    ngo_name,
+    ngo_field,
+    registration_number,
+    services_description,
+  } = req.body;
 
-  // 1. Validate all required fields
-  if (!name || !email || !password || !role || !license) {
+  // 1. Validate required fields for all staff
+  if (!name || !email || !password || !role) {
     return res.status(400).json({
-      message: "All fields are required: name, email, password, role, license",
+      message: "All fields are required: name, email, password, role",
     });
   }
 
@@ -124,7 +141,20 @@ const registerStaff = (req, res) => {
     });
   }
 
-  // 3. Check if email is already registered
+  // 3. Validate role-specific required fields
+  if (role === "doctor" && !license) {
+    return res.status(400).json({
+      message: "Medical license number is required for doctors",
+    });
+  }
+
+  if (role === "ngo" && !registration_number) {
+    return res.status(400).json({
+      message: "Registration number is required for NGOs",
+    });
+  }
+
+  // 4. Check if email is already registered
   const checkEmailSql = "SELECT id FROM users WHERE email = ?";
 
   db.query(checkEmailSql, [email], (err, results) => {
@@ -137,27 +167,41 @@ const registerStaff = (req, res) => {
       return res.status(409).json({ message: "Email is already registered" });
     }
 
-    // 4. Insert staff with status 'pending' — admin must approve before they can login
+    // 5. Insert staff with status 'pending' — admin must approve before they can login
     const insertSql = `
       INSERT INTO users 
-        (name, email, password, role, license, is_verified, status)
-      VALUES (?, ?, ?, ?, ?, FALSE, 'pending')
+        (name, email, password, role, phone, address,
+         hospital, specialization, license, experience,
+         ngo_name, ngo_field, registration_number, services_description,
+         is_verified, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, FALSE, 'pending')
     `;
 
     db.query(
       insertSql,
-      [name, email, password, role, license],
+      [
+        name, email, password, role,
+        phone || null,
+        address || null,
+        hospital || null,
+        specialization || null,
+        license || null,
+        experience || null,
+        ngo_name || null,
+        ngo_field || null,
+        registration_number || null,
+        services_description || null,
+      ],
       (insertErr, result) => {
         if (insertErr) {
           console.error(insertErr);
           return res.status(500).json({ message: "Registration failed" });
         }
 
-        // 5. Return success — admin will review and approve the request
+        // 6. Return success — admin will review and approve the request
         // (in production a confirmation email would be sent here)
         return res.status(201).json({
-          message:
-            "Registration request submitted successfully. Please wait for admin approval.",
+          message: "Registration request submitted successfully. Please wait for admin approval.",
           user_id: result.insertId,
           status: "pending",
         });
