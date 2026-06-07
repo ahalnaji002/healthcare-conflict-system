@@ -2,11 +2,9 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
-import API from "../../services/api";
 
 function JoinRequest() {
   const [role, setRole] = useState("doctor");
-  const [message, setMessage] = useState("");
   const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {

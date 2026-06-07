@@ -9,6 +9,13 @@ function PatientRegister() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const form = e.target;
+
+    if (form.password.value !== form.confirmPassword.value) {
+      setMessage("Passwords do not match");
+      return;
+    }
+
     try {
       const res = await API.post("/auth/register-patient", {
         name: e.target.fullName.value,
