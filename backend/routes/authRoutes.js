@@ -6,6 +6,7 @@ const {
   registerStaff,
   login,
   forgotPassword,
+  getPatientProfile,
 } = require("../controllers/authController");
 const verifyToken = require("../middleware/authMiddleware");
 
@@ -20,6 +21,9 @@ router.post("/login", login);
 
 // Forgot Password
 router.post("/forgot-password", forgotPassword);
+
+// Patient Profile
+router.get("/patient-profile", verifyToken, getPatientProfile);
 
 // Protected test route
 router.get("/profile", verifyToken, (req, res) => {

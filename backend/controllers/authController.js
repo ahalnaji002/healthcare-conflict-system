@@ -41,70 +41,81 @@ const registerPatient = (req, res) => {
       VALUES (?, ?, ?, ?, 'patient', 'active', 0)
     `;
 
-    db.query(insertUserSql, [name, email, password, phone || null], (userErr, userResult) => {
-      if (userErr) {
-        console.error(userErr);
-        return res.status(500).json({ message: "Registration failed" });
-      }
+    db.query(
+      insertUserSql,
+      [name, email, password, phone || null],
+      (userErr, userResult) => {
+        if (userErr) {
+          console.error(userErr);
+          return res.status(500).json({ message: "Registration failed" });
+        }
 
-      const userId = userResult.insertId;
+        const userId = userResult.insertId;
 
-      // 4. Insert into patients table
-      const insertPatientSql = `
+        // 4. Insert into patients table
+        const insertPatientSql = `
         INSERT INTO patients 
           (user_id, national_id, date_of_birth, gender, address, medical_condition)
         VALUES (?, ?, ?, ?, ?, ?)
       `;
 
-      db.query(
-        insertPatientSql,
-        [
-          userId,
-          national_id || null,
-          birth_date,
-          gender || null,
-          address || null,
-          medical_condition || null,
-        ],
-        (patientErr) => {
-          if (patientErr) {
-            console.error(patientErr);
-            return res.status(500).json({ message: "Registration failed" });
-          }
+        db.query(
+          insertPatientSql,
+          [
+            userId,
+            national_id || null,
+            birth_date,
+            gender || null,
+            address || null,
+            medical_condition || null,
+          ],
+          (patientErr) => {
+            if (patientErr) {
+              console.error(patientErr);
+              return res.status(500).json({ message: "Registration failed" });
+            }
 
-          // 5. Generate 6-digit verification code
-          const verificationCode = Math.floor(
-            100000 + Math.random() * 900000
-          ).toString();
+            // 5. Generate 6-digit verification code
+            const verificationCode = Math.floor(
+              100000 + Math.random() * 900000,
+            ).toString();
 
-          const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
-            .toISOString()
-            .slice(0, 19)
-            .replace("T", " ");
+            const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
+              .toISOString()
+              .slice(0, 19)
+              .replace("T", " ");
 
-          // 6. Insert into verification_codes table
-          const insertCodeSql = `
+            // 6. Insert into verification_codes table
+            const insertCodeSql = `
             INSERT INTO verification_codes (user_id, code, purpose, expires_at)
             VALUES (?, ?, 'patient_register', ?)
           `;
 
-          db.query(insertCodeSql, [userId, verificationCode, expiresAt], (codeErr) => {
-            if (codeErr) {
-              console.error(codeErr);
-              return res.status(500).json({ message: "Registration failed" });
-            }
+            db.query(
+              insertCodeSql,
+              [userId, verificationCode, expiresAt],
+              (codeErr) => {
+                if (codeErr) {
+                  console.error(codeErr);
+                  return res
+                    .status(500)
+                    .json({ message: "Registration failed" });
+                }
 
-            // 7. Return success
-            // (in production the code would be sent by email)
-            return res.status(201).json({
-              message: "Patient registered successfully. Please verify your account.",
-              user_id: userId,
-              verification_code: verificationCode, // dev only
-            });
-          });
-        }
-      );
-    });
+                // 7. Return success
+                // (in production the code would be sent by email)
+                return res.status(201).json({
+                  message:
+                    "Patient registered successfully. Please verify your account.",
+                  user_id: userId,
+                  verification_code: verificationCode, // dev only
+                });
+              },
+            );
+          },
+        );
+      },
+    );
   });
 };
 
@@ -157,7 +168,8 @@ const registerStaff = (req, res) => {
   }
 
   // 4. Check if email already exists in join_requests
-  const checkEmailSql = "SELECT join_request_id FROM join_requests WHERE email = ?";
+  const checkEmailSql =
+    "SELECT join_request_id FROM join_requests WHERE email = ?";
 
   db.query(checkEmailSql, [email], (err, results) => {
     if (err) {
@@ -166,7 +178,9 @@ const registerStaff = (req, res) => {
     }
 
     if (results.length > 0) {
-      return res.status(409).json({ message: "A request with this email already exists" });
+      return res
+        .status(409)
+        .json({ message: "A request with this email already exists" });
     }
 
     // 5. Insert into join_requests table
@@ -185,8 +199,16 @@ const registerStaff = (req, res) => {
 
     db.query(
       insertSql,
-      [role, name, email, phone || null, specialty || null,
-       licenseNumber || null, orgType || null, description || null],
+      [
+        role,
+        name,
+        email,
+        phone || null,
+        specialty || null,
+        licenseNumber || null,
+        orgType || null,
+        description || null,
+      ],
       (insertErr, result) => {
         if (insertErr) {
           console.error(insertErr);
@@ -194,11 +216,12 @@ const registerStaff = (req, res) => {
         }
 
         return res.status(201).json({
-          message: "Registration request submitted successfully. Please wait for admin approval.",
+          message:
+            "Registration request submitted successfully. Please wait for admin approval.",
           request_id: result.insertId,
           status: "pending",
         });
-      }
+      },
     );
   });
 };
@@ -262,7 +285,7 @@ const login = (req, res) => {
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     res.status(200).json({
@@ -332,9 +355,54 @@ const forgotPassword = (req, res) => {
   });
 };
 
+// ================= GET PATIENT PROFILE =================
+const getPatientProfile = (req, res) => {
+  const userId = req.user.id;
+
+  const sql = `
+    SELECT 
+      users.id,
+      users.full_name,
+      users.email,
+      users.phone,
+      users.role,
+      users.status,
+      patients.patient_id,
+      patients.national_id,
+      patients.date_of_birth,
+      patients.gender,
+      patients.address,
+      patients.city,
+      patients.blood_type,
+      patients.chronic_diseases,
+      patients.medical_condition,
+      patients.emergency_contact
+    FROM users
+    JOIN patients ON users.id = patients.user_id
+    WHERE users.id = ? AND users.role = 'patient'
+  `;
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Patient profile not found" });
+    }
+
+    return res.status(200).json({
+      message: "Patient profile loaded successfully",
+      patient: results[0],
+    });
+  });
+};
+
 module.exports = {
   registerPatient,
   registerStaff,
   login,
   forgotPassword,
+  getPatientProfile,
 };

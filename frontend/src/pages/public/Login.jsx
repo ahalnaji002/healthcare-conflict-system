@@ -1,22 +1,62 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import "../../styles/dashboard.css";
+import API from "../../services/api";
 
 function Login() {
   const [selectedRole, setSelectedRole] = useState("patient");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (selectedRole === "patient") {
-      navigate("/patient-dashboard");
-    } else if (selectedRole === "doctor") {
-      navigate("/doctor-dashboard");
-    } else if (selectedRole === "ngo") {
-      navigate("/ngo-dashboard");
-    } else if (selectedRole === "admin") {
-      navigate("/admin-dashboard");
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
+    if (!email || !password) {
+      setMessage("Email and password are required");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setMessage("");
+
+      const res = await API.post("/auth/login", {
+        email,
+        password,
+      });
+
+      const { token, user } = res.data;
+
+      if (user.role !== selectedRole) {
+        setMessage(
+          `This account is registered as ${user.role}, not ${selectedRole}.`,
+        );
+        return;
+      }
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      if (user.role === "patient") {
+        navigate("/patient-dashboard");
+      } else if (user.role === "doctor") {
+        navigate("/doctor-dashboard");
+      } else if (user.role === "ngo") {
+        navigate("/ngo-dashboard");
+      } else if (user.role === "admin") {
+        navigate("/admin-dashboard");
+      } else {
+        setMessage("Unknown user role");
+      }
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -139,7 +179,13 @@ function Login() {
               <label>Email Address</label>
               <div className="input-wrapper">
                 <span className="material-symbols-outlined">mail</span>
-                <input type="email" placeholder="Enter your email address" />
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  required
+                />
               </div>
             </div>
 
@@ -151,12 +197,26 @@ function Login() {
 
               <div className="input-wrapper">
                 <span className="material-symbols-outlined">lock</span>
-                <input type="password" placeholder="Enter your password" />
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  required
+                />
               </div>
             </div>
 
-            <button type="submit" className="auth-primary-btn">
-              Secure Login
+            {message && (
+              <p style={{ color: "red", marginBottom: "10px" }}>{message}</p>
+            )}
+
+            <button
+              type="submit"
+              className="auth-primary-btn"
+              disabled={loading}
+            >
+              {loading ? "Logging in..." : "Secure Login"}
             </button>
           </form>
 
