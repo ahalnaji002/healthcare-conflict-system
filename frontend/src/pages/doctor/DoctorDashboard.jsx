@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
+import DoctorTopbar from "../../components/DoctorTopbar";
 
 function DoctorDashboard() {
   const [doctor, setDoctor] = useState(null);
@@ -34,33 +35,13 @@ function DoctorDashboard() {
 
   return (
     <>
-      <header className="dashboard-topbar">
-        <div>
-          <h1>Doctor Dashboard</h1>
-          <p>
-            Welcome back, Dr. {doctor.name || "Doctor"}. Monitor patient cases,
-            treatment updates, and urgent medical needs.
-          </p>
-        </div>
-
-        <div className="topbar-actions">
-          <button className="emergency-action">
-            <span className="material-symbols-outlined">notifications</span>
-            Critical Alerts
-          </button>
-
-          <div className="topbar-user">
-            <div className="user-avatar">
-              {doctor.name ? doctor.name.charAt(0).toUpperCase() : "D"}
-            </div>
-
-            <div className="topbar-user-info">
-              <h4>Dr. {doctor.name || "Doctor"}</h4>
-              <p>{doctor.specialty || doctor.role || "doctor"}</p>
-            </div>
-          </div>
-        </div>
-      </header>
+      <DoctorTopbar
+        title="Doctor Dashboard"
+        subtitle={`Welcome back, Dr. ${
+          doctor.name || "Doctor"
+        }. Monitor patient cases, treatment updates, and urgent medical needs.`}
+        doctor={doctor}
+      />
 
       <section className="stats-grid">
         <div className="stat-box blue">
@@ -133,7 +114,10 @@ function DoctorDashboard() {
 
               <div className="profile-field">
                 <label>License Number</label>
-                <input value={doctor.license_number || "Not provided"} readOnly />
+                <input
+                  value={doctor.license_number || "Not provided"}
+                  readOnly
+                />
               </div>
 
               <div className="profile-field">
@@ -148,7 +132,10 @@ function DoctorDashboard() {
 
               <div className="profile-field">
                 <label>Available Hours</label>
-                <input value={doctor.available_hours || "Not provided"} readOnly />
+                <input
+                  value={doctor.available_hours || "Not provided"}
+                  readOnly
+                />
               </div>
             </div>
           </div>
