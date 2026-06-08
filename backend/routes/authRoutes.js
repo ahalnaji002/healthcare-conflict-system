@@ -6,6 +6,7 @@ const {
   registerStaff,
   login,
   forgotPassword,
+  verifyEmail,
   getProfile,
   getDoctorPatients,
   getDoctorPatientRecord,
@@ -27,6 +28,9 @@ router.post("/login", login);
 
 // Forgot Password
 router.post("/forgot-password", forgotPassword);
+
+// Verify Email
+router.get("/verify-email/:token", verifyEmail);
 
 // Get Current User Profile (protected)
 router.get("/profile", verifyToken, getProfile);
