@@ -3911,3 +3911,67 @@
     align-items: flex-start;
   }
 }
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #0d9488;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.topbar-user-info h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.topbar-user-info p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #64748b;
+  text-transform: capitalize;
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #0d9488;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.topbar-user-info h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.topbar-user-info p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #64748b;
+  text-transform: capitalize;
+}

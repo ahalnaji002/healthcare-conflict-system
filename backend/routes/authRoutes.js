@@ -9,6 +9,7 @@ const {
   verifyEmail,
   getProfile,
 } = require("../controllers/authController");
+
 const verifyToken = require("../middleware/authMiddleware");
 
 // Register Patient
