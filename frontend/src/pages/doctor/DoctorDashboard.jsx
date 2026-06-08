@@ -1,243 +1,261 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
+import API from "../../services/api";
 
 function DoctorDashboard() {
-  return (
-    <div className="dashboard-page">
-      
+  const [doctor, setDoctor] = useState(null);
+  const [message, setMessage] = useState("");
 
-      <main className="dashboard-main">
-        <header className="dashboard-topbar">
+  useEffect(() => {
+    const fetchDoctorProfile = async () => {
+      try {
+        const res = await API.get("/auth/profile");
+        setDoctor(res.data.user);
+      } catch (err) {
+        setMessage(err.response?.data?.message || "Failed to load dashboard");
+      }
+    };
+
+    fetchDoctorProfile();
+  }, []);
+
+  if (message) {
+    return (
+      <div style={{ padding: "30px", color: "red", fontWeight: "bold" }}>
+        {message}
+      </div>
+    );
+  }
+
+  if (!doctor) {
+    return <div style={{ padding: "30px" }}>Loading dashboard...</div>;
+  }
+
+  return (
+    <>
+      <header className="dashboard-topbar">
+        <div>
+          <h1>Doctor Dashboard</h1>
+          <p>
+            Welcome back, Dr. {doctor.name || "Doctor"}. Monitor patient cases,
+            treatment updates, and urgent medical needs.
+          </p>
+        </div>
+
+        <div className="topbar-actions">
+          <button className="emergency-action">
+            <span className="material-symbols-outlined">notifications</span>
+            Critical Alerts
+          </button>
+
+          <div className="topbar-user">
+            <div className="user-avatar">
+              {doctor.name ? doctor.name.charAt(0).toUpperCase() : "D"}
+            </div>
+
+            <div className="topbar-user-info">
+              <h4>Dr. {doctor.name || "Doctor"}</h4>
+              <p>{doctor.specialty || doctor.role || "doctor"}</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section className="stats-grid">
+        <div className="stat-box blue">
           <div>
-            <h1>Doctor Dashboard</h1>
+            <p>Doctor ID</p>
+            <h2>
+              {doctor.doctor_id
+                ? `DR-${String(doctor.doctor_id).padStart(3, "0")}`
+                : "N/A"}
+            </h2>
+          </div>
+          <span className="material-symbols-outlined">badge</span>
+        </div>
+
+        <div className="stat-box green">
+          <div>
+            <p>Account Status</p>
+            <h2>{doctor.status || "active"}</h2>
+          </div>
+          <span className="material-symbols-outlined">verified_user</span>
+        </div>
+
+        <div className="stat-box orange">
+          <div>
+            <p>Specialty</p>
+            <h2>{doctor.specialty || "Not set"}</h2>
+          </div>
+          <span className="material-symbols-outlined">medical_services</span>
+        </div>
+
+        <div className="stat-box red">
+          <div>
+            <p>License</p>
+            <h2>{doctor.license_number || "N/A"}</h2>
+          </div>
+          <span className="material-symbols-outlined">workspace_premium</span>
+        </div>
+      </section>
+
+      <section className="doctor-layout">
+        <div className="content-left">
+          <div className="panel">
+            <div className="panel-header">
+              <div>
+                <h2>Doctor Information</h2>
+                <p>Your professional account information.</p>
+              </div>
+            </div>
+
+            <div className="profile-form-grid">
+              <div className="profile-field">
+                <label>Full Name</label>
+                <input value={doctor.name || "Not provided"} readOnly />
+              </div>
+
+              <div className="profile-field">
+                <label>Email</label>
+                <input value={doctor.email || "Not provided"} readOnly />
+              </div>
+
+              <div className="profile-field">
+                <label>Phone</label>
+                <input value={doctor.phone || "Not provided"} readOnly />
+              </div>
+
+              <div className="profile-field">
+                <label>Specialty</label>
+                <input value={doctor.specialty || "Not provided"} readOnly />
+              </div>
+
+              <div className="profile-field">
+                <label>License Number</label>
+                <input value={doctor.license_number || "Not provided"} readOnly />
+              </div>
+
+              <div className="profile-field">
+                <label>Clinic / Hospital</label>
+                <input value={doctor.clinic_name || "Not provided"} readOnly />
+              </div>
+
+              <div className="profile-field">
+                <label>Workplace</label>
+                <input value={doctor.workplace || "Not provided"} readOnly />
+              </div>
+
+              <div className="profile-field">
+                <label>Available Hours</label>
+                <input value={doctor.available_hours || "Not provided"} readOnly />
+              </div>
+            </div>
+          </div>
+
+          <div className="panel" id="patients">
+            <div className="panel-header">
+              <div>
+                <h2>Assigned Patients</h2>
+                <p>Assigned patient cases will appear here.</p>
+              </div>
+
+              <Link to="/doctor-patients">
+                <button>View All</button>
+              </Link>
+            </div>
+
+            <div className="doctor-patient-table">
+              <div className="doctor-patient-row doctor-patient-head">
+                <span>Patient</span>
+                <span>Condition</span>
+                <span>Priority</span>
+                <span>Status</span>
+                <span>Action</span>
+              </div>
+
+              <div className="doctor-patient-row">
+                <div className="patient-cell">
+                  <div className="patient-avatar">-</div>
+                  <div>
+                    <h3>No assigned patients yet</h3>
+                    <p>Patients will appear after assignment.</p>
+                  </div>
+                </div>
+
+                <span>Not available</span>
+                <span className="priority-badge low">None</span>
+                <span className="status pending">Waiting</span>
+                <button className="mini-btn">Open</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="panel" id="treatment">
+            <div className="panel-header">
+              <div>
+                <h2>Treatment Plan Updates</h2>
+                <p>Recent treatment plan changes will appear here.</p>
+              </div>
+            </div>
+
+            <div className="doctor-update-list">
+              <div className="doctor-update-item">
+                <span className="material-symbols-outlined">edit_note</span>
+                <div>
+                  <h3>No recent updates</h3>
+                  <p>Treatment updates will appear after patient follow-up.</p>
+                  <small>Waiting for activity</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="content-right">
+          <div className="panel progress-panel">
+            <h2>Case Overview</h2>
+
+            <div className="progress-circle">
+              <span>--</span>
+            </div>
+
             <p>
-              Monitor patient cases, treatment updates, and urgent medical
-              needs.
+              Case progress will be calculated once patients are assigned to
+              your account.
             </p>
           </div>
 
-          <div className="topbar-actions">
-            <button className="emergency-action">
+          <div className="panel">
+            <h2>Critical Alerts</h2>
+
+            <div className="alert-card">
               <span className="material-symbols-outlined">notifications</span>
-              Critical Alerts
-            </button>
-
-            <div className="user-avatar">
-              <span className="material-symbols-outlined">stethoscope</span>
-            </div>
-          </div>
-        </header>
-
-        <section className="stats-grid">
-          <div className="stat-box blue">
-            <div>
-              <p>Total Patients</p>
-              <h2>48</h2>
-            </div>
-            <span className="material-symbols-outlined">groups</span>
-          </div>
-
-          <div className="stat-box red">
-            <div>
-              <p>Critical Cases</p>
-              <h2>6</h2>
-            </div>
-            <span className="material-symbols-outlined">priority_high</span>
-          </div>
-
-          <div className="stat-box orange">
-            <div>
-              <p>Pending Reviews</p>
-              <h2>14</h2>
-            </div>
-            <span className="material-symbols-outlined">pending_actions</span>
-          </div>
-
-          <div className="stat-box green">
-            <div>
-              <p>Improving Cases</p>
-              <h2>28</h2>
-            </div>
-            <span className="material-symbols-outlined">trending_up</span>
-          </div>
-        </section>
-
-        <section className="doctor-layout">
-          <div className="content-left">
-            <div className="panel" id="patients">
-              <div className="panel-header">
-                <div>
-                  <h2>Assigned Patients</h2>
-                  <p>Recently updated patient cases.</p>
-                </div>
-
-                <Link to="/doctor-patients">
-                  <button>View All</button>
-                </Link>
-              </div>
-
-              <div className="doctor-patient-table">
-                <div className="doctor-patient-row doctor-patient-head">
-                  <span>Patient</span>
-                  <span>Condition</span>
-                  <span>Priority</span>
-                  <span>Status</span>
-                  <span>Action</span>
-                </div>
-
-                <div className="doctor-patient-row">
-                  <div className="patient-cell">
-                    <div className="patient-avatar">A</div>
-                    <div>
-                      <h3>Ahmed Hashem</h3>
-                      <p>PT-2026-001</p>
-                    </div>
-                  </div>
-
-                  <span>Lower limb injury</span>
-                  <span className="priority-badge critical">Critical</span>
-                  <span className="status pending">Review</span>
-                  <button className="mini-btn">Open</button>
-                </div>
-
-                <div className="doctor-patient-row">
-                  <div className="patient-cell">
-                    <div className="patient-avatar">M</div>
-                    <div>
-                      <h3>Mohammed Ali</h3>
-                      <p>PT-2026-014</p>
-                    </div>
-                  </div>
-
-                  <span>Wound follow-up</span>
-                  <span className="priority-badge medium">Medium</span>
-                  <span className="status taken">Stable</span>
-                  <button className="mini-btn">Open</button>
-                </div>
-
-                <div className="doctor-patient-row">
-                  <div className="patient-cell">
-                    <div className="patient-avatar">S</div>
-                    <div>
-                      <h3>Sara Nabil</h3>
-                      <p>PT-2026-022</p>
-                    </div>
-                  </div>
-
-                  <span>Physical therapy</span>
-                  <span className="priority-badge low">Low</span>
-                  <span className="status taken">Improving</span>
-                  <button className="mini-btn">Open</button>
-                </div>
-              </div>
-            </div>
-
-            <div className="panel" id="treatment">
-              <div className="panel-header">
-                <div>
-                  <h2>Treatment Plan Updates</h2>
-                  <p>Recent changes made to patient treatment plans.</p>
-                </div>
-              </div>
-
-              <div className="doctor-update-list">
-                <div className="doctor-update-item">
-                  <span className="material-symbols-outlined">edit_note</span>
-                  <div>
-                    <h3>Ahmed Hashem</h3>
-                    <p>Medication phase extended for 7 days.</p>
-                    <small>Updated today • 11:30 AM</small>
-                  </div>
-                </div>
-
-                <div className="doctor-update-item">
-                  <span className="material-symbols-outlined">assignment</span>
-                  <div>
-                    <h3>Mohammed Ali</h3>
-                    <p>Wound care frequency changed to twice daily.</p>
-                    <small>Yesterday • 04:15 PM</small>
-                  </div>
-                </div>
-
-                <div className="doctor-update-item">
-                  <span className="material-symbols-outlined">
-                    directions_walk
-                  </span>
-                  <div>
-                    <h3>Sara Nabil</h3>
-                    <p>Physical therapy stage two has started.</p>
-                    <small>2 days ago • 09:20 AM</small>
-                  </div>
-                </div>
+              <div>
+                <h3>No critical alerts</h3>
+                <p>Urgent patient alerts will appear here.</p>
               </div>
             </div>
           </div>
 
-          <div className="content-right">
-            <div className="panel progress-panel">
-              <h2>Case Overview</h2>
+          <div className="panel">
+            <h2>Today’s Schedule</h2>
 
-              <div className="progress-circle">
-                <span>68%</span>
+            <div className="appointment-card">
+              <div className="appointment-date">
+                <strong>--</strong>
+                <span>---</span>
               </div>
 
-              <p>
-                Most assigned cases are stable or improving, with several
-                critical patients needing follow-up today.
-              </p>
-            </div>
-
-            <div className="panel">
-              <h2>Critical Alerts</h2>
-
-              <div className="alert-card critical-alert">
-                <span className="material-symbols-outlined">warning</span>
-                <div>
-                  <h3>High pain reported</h3>
-                  <p>Ahmed Hashem reported increased pain level.</p>
-                </div>
-              </div>
-
-              <div className="alert-card">
-                <span className="material-symbols-outlined">photo_camera</span>
-                <div>
-                  <h3>New wound photo</h3>
-                  <p>New image uploaded for medical review.</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="panel">
-              <h2>Today’s Schedule</h2>
-
-              <div className="appointment-card">
-                <div className="appointment-date">
-                  <strong>10</strong>
-                  <span>AM</span>
-                </div>
-
-                <div>
-                  <h3>Online Consultation</h3>
-                  <p>Ahmed Hashem • Wound review</p>
-                </div>
-              </div>
-
-              <div className="appointment-card">
-                <div className="appointment-date">
-                  <strong>12</strong>
-                  <span>PM</span>
-                </div>
-
-                <div>
-                  <h3>Therapy Review</h3>
-                  <p>Sara Nabil • Progress check</p>
-                </div>
+              <div>
+                <h3>No appointments scheduled</h3>
+                <p>Your appointments will appear here.</p>
               </div>
             </div>
           </div>
-        </section>
-      </main>
-    </div>
+        </div>
+      </section>
+    </>
   );
 }
 

@@ -359,10 +359,18 @@ const getProfile = (req, res) => {
       patients.blood_type,
       patients.chronic_diseases,
       patients.medical_condition,
-      patients.emergency_contact
+      patients.emergency_contact,
+
+      doctors.doctor_id,
+      doctors.specialty,
+      doctors.license_number,
+      doctors.clinic_name,
+      doctors.workplace,
+      doctors.available_hours
 
     FROM users
     LEFT JOIN patients ON users.id = patients.user_id
+    LEFT JOIN doctors ON users.id = doctors.user_id
     WHERE users.id = ?
   `;
 
@@ -413,6 +421,13 @@ const getProfile = (req, res) => {
         chronic_diseases: user.chronic_diseases,
         medical_condition: user.medical_condition,
         emergency_contact: user.emergency_contact,
+
+        doctor_id: user.doctor_id,
+        specialty: user.specialty,
+        license_number: user.license_number,
+        clinic_name: user.clinic_name,
+        workplace: user.workplace,
+        available_hours: user.available_hours,
       },
     });
   });
