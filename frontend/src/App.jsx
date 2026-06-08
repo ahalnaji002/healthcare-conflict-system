@@ -78,6 +78,10 @@ function App() {
           element={<DoctorPatientRecord />}
         />
         <Route
+          path="/doctor-patient-record/:patientId"
+          element={<DoctorPatientRecord />}
+        />
+        <Route
           path="/doctor-update-treatment"
           element={<DoctorUpdateTreatment />}
         />

@@ -190,7 +190,7 @@ function DoctorPatients() {
                   </span>
 
                   <div className="row-actions">
-                    <Link to="/doctor-patient-record">
+                    <Link to={`/doctor-patient-record/${patient.patient_id}`}>
                       <button className="mini-btn">Open Record</button>
                     </Link>
 

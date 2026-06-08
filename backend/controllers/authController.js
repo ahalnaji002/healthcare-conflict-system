@@ -477,6 +477,61 @@ const getDoctorPatients = (req, res) => {
   });
 };
 
+// ================= GET DOCTOR PATIENT RECORD =================
+const getDoctorPatientRecord = (req, res) => {
+  const doctorUserId = req.user.id;
+  const { patientId } = req.params;
+
+  const sql = `
+    SELECT 
+      patients.patient_id,
+      patients.national_id,
+      patients.date_of_birth,
+      patients.gender,
+      patients.address,
+      patients.blood_type,
+      patients.chronic_diseases,
+      patients.medical_condition,
+      patients.emergency_contact,
+
+      users.full_name,
+      users.email,
+      users.phone,
+      users.status,
+
+      doctors.doctor_id
+
+    FROM doctors
+    JOIN patient_doctor 
+      ON doctors.doctor_id = patient_doctor.doctor_id
+    JOIN patients 
+      ON patient_doctor.patient_id = patients.patient_id
+    JOIN users 
+      ON patients.user_id = users.id
+    WHERE doctors.user_id = ?
+      AND patients.patient_id = ?
+    LIMIT 1
+  `;
+
+  db.query(sql, [doctorUserId, patientId], (err, results) => {
+    if (err) {
+      console.error("GET DOCTOR PATIENT RECORD ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({
+        message: "Patient not found or not assigned to this doctor",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Patient record fetched successfully",
+      patient: results[0],
+    });
+  });
+};
+
 module.exports = {
   registerPatient,
   registerStaff,
@@ -484,4 +539,5 @@ module.exports = {
   forgotPassword,
   getProfile,
   getDoctorPatients,
+  getDoctorPatientRecord,
 };
