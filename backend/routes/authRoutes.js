@@ -48,6 +48,5 @@ router.get("/patient-doctor", verifyToken, getPatientDoctor);
 router.post("/resend-code", resendCode);
 
 router.post("/verify-code", verifyCode);
-router.post("/resend-code", resendCode);
 
 module.exports = router;
