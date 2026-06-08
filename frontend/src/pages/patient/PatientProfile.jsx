@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
+import PatientTopbar from "../../components/PatientTopbar";
 
 function PatientProfile() {
   const [user, setUser] = useState(null);
@@ -42,25 +43,11 @@ function PatientProfile() {
 
   return (
     <>
-      <header className="dashboard-topbar">
-        <div>
-          <h1>Patient Profile</h1>
-          <p>
-            Manage your personal, medical, and emergency contact information.
-          </p>
-        </div>
-
-        <div className="topbar-actions">
-          <button className="emergency-action">
-            <span className="material-symbols-outlined">emergency</span>
-            Emergency Alert
-          </button>
-
-          <div className="user-avatar">
-            <span className="material-symbols-outlined">person</span>
-          </div>
-        </div>
-      </header>
+      <PatientTopbar
+        title="Patient Profile"
+        subtitle="Manage your personal, medical, and emergency contact information."
+        user={user}
+      />
 
       <section className="profile-layout">
         <div className="content-left">

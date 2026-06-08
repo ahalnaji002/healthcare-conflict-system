@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
+import PatientTopbar from "../../components/PatientTopbar";
 
 function PatientDashboard() {
   const [user, setUser] = useState(null);
@@ -33,26 +34,11 @@ function PatientDashboard() {
 
   return (
     <>
-      <header className="dashboard-topbar">
-        <div>
-          <h1>Patient Dashboard</h1>
-          <p>
-            Welcome back, {user.name || "Patient"}. Here is your medical
-            follow-up summary.
-          </p>
-        </div>
-
-        <div className="topbar-actions">
-          <button className="emergency-action">
-            <span className="material-symbols-outlined">emergency</span>
-            Emergency Alert
-          </button>
-
-          <div className="user-avatar">
-            <span className="material-symbols-outlined">person</span>
-          </div>
-        </div>
-      </header>
+      <PatientTopbar
+        title="Patient Dashboard"
+        subtitle={`Welcome back, ${user.name || "Patient"}. Here is your medical follow-up summary.`}
+        user={user}
+      />
 
       <section className="stats-grid">
         <div className="stat-box blue">
