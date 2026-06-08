@@ -1,5 +1,29 @@
 const db = require("../config/db");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+
+// ================= EMAIL HELPER =================
+const sendEmail = (to, subject, html) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  const mailOptions = {
+    from: `"Healthcare System" <${process.env.EMAIL_USER}>`,
+    to,
+    subject,
+    html,
+  };
+
+  transporter.sendMail(mailOptions, (err) => {
+    if (err) console.error("Email sending failed:", err);
+    else console.log(`Email sent to ${to}`);
+  });
+};
 
 // ================= REGISTER PATIENT =================
 const registerPatient = (req, res) => {
@@ -95,11 +119,28 @@ const registerPatient = (req, res) => {
                 return res.status(500).json({ message: "Registration failed" });
               }
 
+              // Send verification email
+              sendEmail(
+                email,
+                "Verify Your Account - Healthcare System",
+                `
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
+                  <h2 style="color: #2c7be5;">Healthcare Conflict System</h2>
+                  <p>Thank you for registering! Use the code below to verify your account:</p>
+                  <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px;
+                              color: #2c7be5; text-align: center; padding: 20px;
+                              background: #f0f4ff; border-radius: 8px; margin: 20px 0;">
+                    ${verificationCode}
+                  </div>
+                  <p>This code expires in <strong>10 minutes</strong>.</p>
+                  <p>If you did not register, please ignore this email.</p>
+                </div>
+                `
+              );
+
               return res.status(201).json({
-                message:
-                  "Patient registered successfully. Please verify your account.",
+                message: "Patient registered successfully. Please verify your account.",
                 user_id: userId,
-                verification_code: verificationCode, // dev only
               });
             });
           },
@@ -330,11 +371,27 @@ const forgotPassword = (req, res) => {
         return res.status(500).json({ message: "Server error" });
       }
 
-      console.log(`Reset code for ${email}: ${resetCode}`);
+      // Send reset code by email
+      sendEmail(
+        email,
+        "Password Reset Code - Healthcare System",
+        `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
+          <h2 style="color: #2c7be5;">Healthcare Conflict System</h2>
+          <p>You requested a password reset. Use the code below:</p>
+          <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px;
+                      color: #2c7be5; text-align: center; padding: 20px;
+                      background: #f0f4ff; border-radius: 8px; margin: 20px 0;">
+            ${resetCode}
+          </div>
+          <p>This code expires in <strong>10 minutes</strong>.</p>
+          <p>If you did not request this, please ignore this email.</p>
+        </div>
+        `
+      );
 
       return res.status(200).json({
         message: "If this email is registered, a reset code has been sent.",
-        reset_code: resetCode, // dev only
       });
     });
   });
@@ -702,9 +759,26 @@ const resendCode = (req, res) => {
           return res.status(500).json({ message: "Server error" });
         }
 
+        // Send new verification code by email
+        sendEmail(
+          user.email,
+          "New Verification Code - Healthcare System",
+          `
+          <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
+            <h2 style="color: #2c7be5;">Healthcare Conflict System</h2>
+            <p>Your new verification code is:</p>
+            <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px;
+                        color: #2c7be5; text-align: center; padding: 20px;
+                        background: #f0f4ff; border-radius: 8px; margin: 20px 0;">
+              ${code}
+            </div>
+            <p>This code expires in <strong>10 minutes</strong>.</p>
+          </div>
+          `
+        );
+
         return res.status(200).json({
-          message: "A new verification code has been sent.",
-          code: code,
+          message: "A new verification code has been sent to your email.",
         });
       });
     });
