@@ -532,6 +532,54 @@ const getDoctorPatientRecord = (req, res) => {
   });
 };
 
+// ================= GET PATIENT DOCTOR =================
+const getPatientDoctor = (req, res) => {
+  const userId = req.user.id;
+
+  const sql = `
+    SELECT 
+      doctors.doctor_id,
+      doctors.specialty,
+      doctors.license_number,
+      doctors.clinic_name,
+      doctors.workplace,
+      doctors.available_hours,
+
+      users.full_name,
+      users.email,
+      users.phone,
+      users.status
+
+    FROM patients
+    JOIN patient_doctor
+      ON patients.patient_id = patient_doctor.patient_id
+    JOIN doctors
+      ON patient_doctor.doctor_id = doctors.doctor_id
+    JOIN users
+      ON doctors.user_id = users.id
+    WHERE patients.user_id = ?
+    LIMIT 1
+  `;
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error("GET PATIENT DOCTOR ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({
+        message: "No doctor assigned to this patient yet",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Patient doctor fetched successfully",
+      doctor: results[0],
+    });
+  });
+};
+
 module.exports = {
   registerPatient,
   registerStaff,
@@ -540,4 +588,5 @@ module.exports = {
   getProfile,
   getDoctorPatients,
   getDoctorPatientRecord,
+  getPatientDoctor,
 };

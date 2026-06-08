@@ -9,6 +9,7 @@ const {
   getProfile,
   getDoctorPatients,
   getDoctorPatientRecord,
+  getPatientDoctor,
 } = require("../controllers/authController");
 
 const verifyToken = require("../middleware/authMiddleware");
@@ -33,5 +34,8 @@ router.get("/doctor-patients", verifyToken, getDoctorPatients);
 
 // Get Doctor Patients Record
 router.get("/doctor-patients/:patientId", verifyToken, getDoctorPatientRecord);
+
+// Get  Patient Doctor
+router.get("/patient-doctor", verifyToken, getPatientDoctor);
 
 module.exports = router;

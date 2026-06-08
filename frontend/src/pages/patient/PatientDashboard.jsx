@@ -5,6 +5,7 @@ import PatientTopbar from "../../components/PatientTopbar";
 
 function PatientDashboard() {
   const [user, setUser] = useState(null);
+  const [doctor, setDoctor] = useState(null);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -12,6 +13,13 @@ function PatientDashboard() {
       try {
         const res = await API.get("/auth/profile");
         setUser(res.data.user);
+
+        try {
+          const doctorRes = await API.get("/auth/patient-doctor");
+          setDoctor(doctorRes.data.doctor);
+        } catch {
+          setDoctor(null);
+        }
       } catch (err) {
         setMessage(err.response?.data?.message || "Failed to load dashboard");
       }
@@ -231,12 +239,18 @@ function PatientDashboard() {
               </div>
 
               <div>
-                <h3>Not assigned yet</h3>
-                <p>Doctor information will appear here.</p>
+                <h3>
+                  {doctor ? `Dr. ${doctor.full_name}` : "Not assigned yet"}
+                </h3>
+                <p>
+                  {doctor
+                    ? doctor.specialty || "Specialty not provided"
+                    : "Doctor information will appear here."}
+                </p>
               </div>
             </div>
 
-            <button className="message-btn">
+            <button className="message-btn" disabled={!doctor}>
               <span className="material-symbols-outlined">chat</span>
               Send Message
             </button>
