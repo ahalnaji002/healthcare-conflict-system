@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
+import AppLogo from "../../components/AppLogo";
 
 function AnimatedNumber({ value, duration = 900 }) {
   const [displayValue, setDisplayValue] = useState(0);
@@ -59,11 +60,7 @@ function Landing() {
     <div className="landing-page">
       <header className="landing-header">
         <div className="logo-area">
-          <div className="logo-icon">+</div>
-          <div>
-            <h2>War Injuries Care</h2>
-            <p>Smart Medical Follow-up System</p>
-          </div>
+          <AppLogo />
         </div>
 
         <nav className="nav-links">
@@ -177,34 +174,63 @@ function Landing() {
         <h2>Who Can Use the System?</h2>
 
         <div className="roles-grid">
-          <div className="role-card">
-            <h3>Patients</h3>
-            <p>
-              Track treatments, appointments, medications, and assistance
-              requests.
-            </p>
+          <div className="role-card role-card-with-icon">
+            <div className="role-image patient-role">
+              <span className="material-symbols-outlined">personal_injury</span>
+            </div>
+
+            <div>
+              <h3>Patients</h3>
+              <p>
+                Track treatments, appointments, medications, and assistance
+                requests.
+              </p>
+            </div>
           </div>
 
-          <div className="role-card">
-            <h3>Doctors</h3>
-            <p>
-              Follow patient cases, update treatment plans, and communicate
-              securely.
-            </p>
+          <div className="role-card role-card-with-icon">
+            <div className="role-image doctor-role">
+              <span className="material-symbols-outlined">stethoscope</span>
+            </div>
+
+            <div>
+              <h3>Doctors</h3>
+              <p>
+                Follow patient cases, update treatment plans, and communicate
+                securely.
+              </p>
+            </div>
           </div>
 
-          <div className="role-card">
-            <h3>NGOs</h3>
-            <p>
-              Review assistance requests and coordinate humanitarian support.
-            </p>
+          <div className="role-card role-card-with-icon">
+            <div className="role-image ngo-role">
+              <span className="material-symbols-outlined">
+                volunteer_activism
+              </span>
+            </div>
+
+            <div>
+              <h3>NGOs</h3>
+              <p>
+                Review assistance requests and coordinate humanitarian support.
+              </p>
+            </div>
           </div>
 
-          <div className="role-card">
-            <h3>Admins</h3>
-            <p>
-              Manage users, records, reports, system activity, and permissions.
-            </p>
+          <div className="role-card role-card-with-icon">
+            <div className="role-image admin-role">
+              <span className="material-symbols-outlined">
+                admin_panel_settings
+              </span>
+            </div>
+
+            <div>
+              <h3>Admins</h3>
+              <p>
+                Manage users, records, reports, system activity, and
+                permissions.
+              </p>
+            </div>
           </div>
         </div>
       </section>

@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
 import { useState } from "react";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
+import AuthHeader from "../../components/AuthHeader";
 
 function JoinRequest() {
   const [role, setRole] = useState("doctor");
@@ -42,28 +42,7 @@ function JoinRequest() {
 
   return (
     <div className="form-page">
-      <header className="form-header">
-        <Link to="/" className="form-logo">
-          War Injuries Care
-        </Link>
-
-        <nav className="form-nav">
-          <Link to="/">Home</Link>
-          <a href="#about">About</a>
-          <a href="#services">Services</a>
-          <Link to="/join-request" className="active-link">
-            Join Us
-          </Link>
-        </nav>
-
-        <div className="form-header-actions">
-          <Link to="/login">Login</Link>
-          <button type="button" className="emergency-btn">
-            Emergency Help
-          </button>
-        </div>
-      </header>
-
+      <AuthHeader />
       <main className="register-main">
         <div className="register-layout">
           <aside className="register-info">
