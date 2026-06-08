@@ -76,36 +76,25 @@ const registerPatient = (req, res) => {
               100000 + Math.random() * 900000,
             ).toString();
 
-            const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
-              .toISOString()
-              .slice(0, 19)
-              .replace("T", " ");
-
             const insertCodeSql = `
-              INSERT INTO verification_codes 
-                (user_id, code, purpose, expires_at)
-              VALUES (?, ?, 'patient_register', ?)
+              INSERT INTO verification_codes
+              (user_id, code, purpose, expires_at, is_used)
+              VALUES (?, ?, 'patient_register', DATE_ADD(NOW(), INTERVAL 10 MINUTE), 0)
             `;
 
-            db.query(
-              insertCodeSql,
-              [userId, verificationCode, expiresAt],
-              (codeErr) => {
-                if (codeErr) {
-                  console.error(codeErr);
-                  return res
-                    .status(500)
-                    .json({ message: "Registration failed" });
-                }
+            db.query(insertCodeSql, [userId, verificationCode], (codeErr) => {
+              if (codeErr) {
+                console.error(codeErr);
+                return res.status(500).json({ message: "Registration failed" });
+              }
 
-                return res.status(201).json({
-                  message:
-                    "Patient registered successfully. Please verify your account.",
-                  user_id: userId,
-                  verification_code: verificationCode,
-                });
-              },
-            );
+              return res.status(201).json({
+                message:
+                  "Patient registered successfully. Please verify your account.",
+                user_id: userId,
+                verification_code: verificationCode,
+              });
+            });
           },
         );
       },
@@ -580,6 +569,157 @@ const getPatientDoctor = (req, res) => {
   });
 };
 
+// ================= RESEND VERIFICATION CODE =================
+const resendCode = (req, res) => {
+  const { user_id, email } = req.body;
+
+  if (!user_id && !email) {
+    return res.status(400).json({
+      message: "User ID or email is required",
+    });
+  }
+
+  const findUserSql = user_id
+    ? "SELECT id, email FROM users WHERE id = ?"
+    : "SELECT id, email FROM users WHERE email = ?";
+
+  const findValue = user_id || email;
+
+  db.query(findUserSql, [findValue], (userErr, userResults) => {
+    if (userErr) {
+      console.error("FIND USER ERROR:", userErr);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (userResults.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = userResults[0];
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const expireSql = `
+      UPDATE verification_codes
+      SET is_used = 1
+      WHERE user_id = ?
+        AND purpose = 'patient_register'
+        AND is_used = 0
+    `;
+
+    db.query(expireSql, [user.id], (expireErr) => {
+      if (expireErr) {
+        console.error("EXPIRE OLD CODES ERROR:", expireErr);
+        return res.status(500).json({ message: "Server error" });
+      }
+
+      const insertSql = `
+        INSERT INTO verification_codes 
+        (user_id, code, purpose, expires_at, is_used)
+        VALUES (?, ?, 'patient_register', DATE_ADD(NOW(), INTERVAL 10 MINUTE), 0)
+      `;
+
+      db.query(insertSql, [user.id, code], (insertErr) => {
+        if (insertErr) {
+          console.error("INSERT NEW CODE ERROR:", insertErr);
+          return res.status(500).json({ message: "Server error" });
+        }
+
+        return res.status(200).json({
+          message: "A new verification code has been sent.",
+          code: code,
+        });
+      });
+    });
+  });
+};
+
+// ================= VERIFY ACCOUNT CODE =================
+const verifyCode = (req, res) => {
+  const { user_id, email, code } = req.body;
+
+  if (!code || (!user_id && !email)) {
+    return res.status(400).json({
+      message: "User ID or email and verification code are required",
+    });
+  }
+
+  const findUserSql = user_id
+    ? "SELECT id, email FROM users WHERE id = ?"
+    : "SELECT id, email FROM users WHERE email = ?";
+
+  const findValue = user_id || email;
+
+  db.query(findUserSql, [findValue], (userErr, userResults) => {
+    if (userErr) {
+      console.error("VERIFY FIND USER ERROR:", userErr);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (userResults.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = userResults[0];
+
+    const verifySql = `
+      SELECT *
+      FROM verification_codes
+      WHERE user_id = ?
+        AND code = ?
+        AND purpose = 'patient_register'
+        AND is_used = 0
+        AND expires_at > NOW()
+      ORDER BY created_at DESC
+      LIMIT 1
+    `;
+
+    db.query(verifySql, [user.id, code], (verifyErr, codeResults) => {
+      if (verifyErr) {
+        console.error("VERIFY CODE ERROR:", verifyErr);
+        return res.status(500).json({ message: "Server error" });
+      }
+
+      if (codeResults.length === 0) {
+        return res.status(400).json({
+          message: "Invalid or expired verification code.",
+        });
+      }
+
+      const updateUserSql = `
+        UPDATE users
+        SET is_verified = 1,
+            status = 'active'
+        WHERE id = ?
+      `;
+
+      db.query(updateUserSql, [user.id], (updateUserErr) => {
+        if (updateUserErr) {
+          console.error("VERIFY UPDATE USER ERROR:", updateUserErr);
+          return res.status(500).json({ message: "Server error" });
+        }
+
+        const markCodeSql = `
+          UPDATE verification_codes
+          SET is_used = 1
+          WHERE code_id = ?
+        `;
+
+        db.query(markCodeSql, [codeResults[0].code_id], (markErr) => {
+          if (markErr) {
+            console.error("VERIFY MARK CODE ERROR:", markErr);
+            return res.status(500).json({ message: "Server error" });
+          }
+
+          return res.status(200).json({
+            message: "Account verified successfully",
+          });
+        });
+      });
+    });
+  });
+};
+
 module.exports = {
   registerPatient,
   registerStaff,
@@ -589,4 +729,6 @@ module.exports = {
   getDoctorPatients,
   getDoctorPatientRecord,
   getPatientDoctor,
+  verifyCode,
+  resendCode,
 };

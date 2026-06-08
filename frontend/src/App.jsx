@@ -8,6 +8,7 @@ import JoinRequest from "./pages/public/JoinRequest";
 import ForgotPassword from "./pages/public/ForgotPassword";
 import NotFound from "./pages/public/NotFound";
 import EmergencyAlert from "./pages/public/EmergencyAlert";
+import VerificationCode from "./pages/public/VerificationCode";
 
 // Patient Pages
 import PatientLayout from "./layouts/PatientLayout";
@@ -55,6 +56,7 @@ function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/patient-register" element={<PatientRegister />} />
+      <Route path="/verify-account" element={<VerificationCode />} />
       <Route path="/join-request" element={<JoinRequest />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/emergency-alert" element={<EmergencyAlert />} />

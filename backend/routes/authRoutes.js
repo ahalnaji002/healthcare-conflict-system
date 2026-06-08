@@ -10,6 +10,8 @@ const {
   getDoctorPatients,
   getDoctorPatientRecord,
   getPatientDoctor,
+  resendCode,
+  verifyCode,
 } = require("../controllers/authController");
 
 const verifyToken = require("../middleware/authMiddleware");
@@ -37,5 +39,11 @@ router.get("/doctor-patients/:patientId", verifyToken, getDoctorPatientRecord);
 
 // Get  Patient Doctor
 router.get("/patient-doctor", verifyToken, getPatientDoctor);
+
+// RESEND VERIFICATION CODE
+router.post("/resend-code", resendCode);
+
+router.post("/verify-code", verifyCode);
+router.post("/resend-code", resendCode);
 
 module.exports = router;
