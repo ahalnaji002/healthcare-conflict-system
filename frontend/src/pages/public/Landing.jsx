@@ -1,8 +1,60 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
+import API from "../../services/api";
 
+function AnimatedNumber({ value, duration = 900 }) {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const end = Number(value) || 0;
+
+    if (end === 0) {
+      return;
+    }
+
+    const incrementTime = 10;
+    const steps = Math.ceil(duration / incrementTime);
+    const increment = end / steps;
+
+    const timer = setInterval(() => {
+      start += increment;
+
+      if (start >= end) {
+        setDisplayValue(end);
+        clearInterval(timer);
+      } else {
+        setDisplayValue(Math.floor(start));
+      }
+    }, incrementTime);
+
+    return () => clearInterval(timer);
+  }, [value, duration]);
+
+  return <>{displayValue}</>;
+}
 
 function Landing() {
+  const [stats, setStats] = useState({
+    total_patients: 0,
+    total_doctors: 0,
+    total_ngos: 0,
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await API.get("/auth/landing-stats");
+        setStats(res.data.stats);
+      } catch (err) {
+        console.error("Failed to load landing stats:", err);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   return (
     <div className="landing-page">
       <header className="landing-header">
@@ -62,18 +114,24 @@ function Landing() {
             </div>
 
             <div className="stat-card blue">
-              <h3>Critical Cases</h3>
-              <p>24 Active</p>
+              <h3>
+                <AnimatedNumber value={stats.total_patients} />
+              </h3>
+              <p>Registered Patients</p>
             </div>
 
             <div className="stat-card green">
-              <h3>Medication Reminders</h3>
-              <p>On Schedule</p>
+              <h3>
+                <AnimatedNumber value={stats.total_doctors} />
+              </h3>
+              <p>Available Doctors</p>
             </div>
 
             <div className="stat-card orange">
-              <h3>NGO Requests</h3>
-              <p>12 Pending</p>
+              <h3>
+                <AnimatedNumber value={stats.total_ngos} />
+              </h3>
+              <p>Partner NGOs</p>
             </div>
           </div>
         </div>

@@ -1,6 +1,30 @@
 const db = require("../config/db");
 const jwt = require("jsonwebtoken");
 
+// ================= GET LANDING STATS =================
+const getLandingStats = (req, res) => {
+  const statsSql = `
+    SELECT
+      (SELECT COUNT(*) FROM patients) AS total_patients,
+      (SELECT COUNT(*) FROM doctors) AS total_doctors,
+      (SELECT COUNT(*) FROM ngos) AS total_ngos,
+      (SELECT COUNT(*) FROM join_requests WHERE status = 'pending') AS pending_join_requests,
+      (SELECT COUNT(*) FROM users WHERE status = 'active') AS active_users
+  `;
+
+  db.query(statsSql, (err, results) => {
+    if (err) {
+      console.error("GET LANDING STATS ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    return res.status(200).json({
+      message: "Landing stats fetched successfully",
+      stats: results[0],
+    });
+  });
+};
+
 // ================= REGISTER PATIENT =================
 const registerPatient = (req, res) => {
   const {
@@ -809,4 +833,5 @@ module.exports = {
   getPatientDoctor,
   verifyCode,
   resendCode,
+  getLandingStats,
 };

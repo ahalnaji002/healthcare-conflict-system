@@ -13,9 +13,13 @@ const {
   getPatientDoctor,
   resendCode,
   verifyCode,
+  getLandingStats,
 } = require("../controllers/authController");
 
 const verifyToken = require("../middleware/authMiddleware");
+
+// GET LANDING STATS
+router.get("/landing-stats", getLandingStats);
 
 // Register Patient
 router.post("/register-patient", registerPatient);
