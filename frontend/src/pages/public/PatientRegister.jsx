@@ -1,10 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
 import { useState } from "react";
 
 function PatientRegister() {
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,18 +19,28 @@ function PatientRegister() {
 
     try {
       const res = await API.post("/auth/register-patient", {
-        name: e.target.fullName.value,
-        email: e.target.email.value,
-        password: e.target.password.value,
-        birth_date: e.target.dob.value,
-        national_id: e.target.patientId.value,
-        phone: e.target.phone.value,
-        gender: e.target.gender.value,
-        address: e.target.address.value,
-        medical_condition: e.target.condition.value,
+        name: form.fullName.value,
+        email: form.email.value,
+        password: form.password.value,
+        birth_date: form.dob.value,
+        national_id: form.patientId.value,
+        phone: form.phone.value,
+        gender: form.gender.value,
+        address: form.address.value,
+        medical_condition: form.condition.value,
       });
 
-      setMessage(res.data.message);
+      localStorage.setItem("verify_user_id", res.data.user_id);
+      localStorage.setItem("verify_email", form.email.value);
+      localStorage.setItem("verify_role", "patient");
+
+      navigate("/verify-account", {
+        state: {
+          user_id: res.data.user_id,
+          email: form.email.value,
+          role: "patient",
+        },
+      });
     } catch (err) {
       setMessage(err.response?.data?.message || "Registration failed");
     }
@@ -102,6 +113,7 @@ function PatientRegister() {
                     id="fullName"
                     type="text"
                     placeholder="Enter legal name"
+                    required
                   />
                 </div>
 
@@ -121,12 +133,13 @@ function PatientRegister() {
                     id="email"
                     type="email"
                     placeholder="name@example.com"
+                    required
                   />
                 </div>
 
                 <div className="field">
                   <label htmlFor="dob">Date of Birth</label>
-                  <input id="dob" type="date" />
+                  <input id="dob" type="date" required />
                 </div>
 
                 <div className="field">
@@ -169,6 +182,7 @@ function PatientRegister() {
                     id="password"
                     type="password"
                     placeholder="Min. 8 characters"
+                    required
                   />
                 </div>
 
@@ -178,13 +192,14 @@ function PatientRegister() {
                     id="confirmPassword"
                     type="password"
                     placeholder="Repeat password"
+                    required
                   />
                 </div>
               </div>
 
               <div className="form-bottom">
                 <label className="terms-check">
-                  <input type="checkbox" />
+                  <input type="checkbox" required />
                   <span>
                     I agree to the <a href="#terms">Terms of Service</a> and{" "}
                     <a href="#privacy">Privacy Policy</a>.
@@ -192,10 +207,11 @@ function PatientRegister() {
                 </label>
 
                 {message && (
-                  <p style={{ color: "green", marginBottom: "10px" }}>
+                  <p style={{ color: "red", marginBottom: "10px" }}>
                     {message}
                   </p>
                 )}
+
                 <button type="submit" className="submit-btn">
                   Create Account
                 </button>
