@@ -77,18 +77,14 @@ const registerPatient = (req, res) => {
             100000 + Math.random() * 900000
           ).toString();
 
-          const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
-            .toISOString()
-            .slice(0, 19)
-            .replace("T", " ");
-
           // 6. Insert into verification_codes table
+          // Using MySQL NOW() + INTERVAL to avoid timezone issues
           const insertCodeSql = `
             INSERT INTO verification_codes (user_id, code, purpose, expires_at)
-            VALUES (?, ?, 'patient_register', ?)
+            VALUES (?, ?, 'patient_register', DATE_ADD(NOW(), INTERVAL 15 MINUTE))
           `;
 
-          db.query(insertCodeSql, [userId, verificationCode, expiresAt], (codeErr) => {
+          db.query(insertCodeSql, [userId, verificationCode], (codeErr) => {
             if (codeErr) {
               console.error(codeErr);
               return res.status(500).json({ message: "Registration failed" });
@@ -305,18 +301,13 @@ const forgotPassword = (req, res) => {
 
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
-      .toISOString()
-      .slice(0, 19)
-      .replace("T", " ");
-
-    // Store in verification_codes table
+    // Store in verification_codes table using MySQL NOW() to avoid timezone issues
     const insertSql = `
       INSERT INTO verification_codes (user_id, code, purpose, expires_at)
-      VALUES (?, ?, 'patient_register', ?)
+      VALUES (?, ?, 'patient_register', DATE_ADD(NOW(), INTERVAL 15 MINUTE))
     `;
 
-    db.query(insertSql, [user.id, resetCode, expiresAt], (insertErr) => {
+    db.query(insertSql, [user.id, resetCode], (insertErr) => {
       if (insertErr) {
         console.error(insertErr);
         return res.status(500).json({ message: "Server error" });
@@ -327,6 +318,61 @@ const forgotPassword = (req, res) => {
       return res.status(200).json({
         message: "If this email is registered, a reset code has been sent.",
         reset_code: resetCode, // dev only
+      });
+    });
+  });
+};
+
+// ================= VERIFY EMAIL =================
+const verifyEmail = (req, res) => {
+  const { token } = req.params;
+
+  if (!token) {
+    return res.status(400).json({ message: "Verification code is required" });
+  }
+
+  // 1. Find the code in verification_codes table — check expiry using DB time
+  const findCodeSql = `
+    SELECT * FROM verification_codes 
+    WHERE code = ? AND is_used = 0 AND expires_at > NOW()
+    ORDER BY created_at DESC 
+    LIMIT 1
+  `;
+
+  db.query(findCodeSql, [token], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    // 2. Code not found or expired
+    if (results.length === 0) {
+      return res.status(400).json({ message: "Invalid, already used, or expired verification code" });
+    }
+
+    const codeRecord = results[0];
+
+    // 4. Mark code as used
+    const markUsedSql = "UPDATE verification_codes SET is_used = 1 WHERE code_id = ?";
+
+    db.query(markUsedSql, [codeRecord.code_id], (markErr) => {
+      if (markErr) {
+        console.error(markErr);
+        return res.status(500).json({ message: "Server error" });
+      }
+
+      // 5. Activate the user account
+      const activateSql = "UPDATE users SET is_verified = 1 WHERE id = ?";
+
+      db.query(activateSql, [codeRecord.user_id], (activateErr) => {
+        if (activateErr) {
+          console.error(activateErr);
+          return res.status(500).json({ message: "Server error" });
+        }
+
+        return res.status(200).json({
+          message: "Email verified successfully. Your account is now active.",
+        });
       });
     });
   });
@@ -385,5 +431,6 @@ module.exports = {
   registerStaff,
   login,
   forgotPassword,
+  verifyEmail,
   getProfile,
 };
