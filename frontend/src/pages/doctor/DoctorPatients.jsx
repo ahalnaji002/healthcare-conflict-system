@@ -6,13 +6,17 @@ import DoctorTopbar from "../../components/DoctorTopbar";
 
 function DoctorPatients() {
   const [doctor, setDoctor] = useState(null);
+  const [patients, setPatients] = useState([]);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const fetchDoctorProfile = async () => {
+    const fetchData = async () => {
       try {
-        const res = await API.get("/auth/profile");
-        setDoctor(res.data.user);
+        const profileRes = await API.get("/auth/profile");
+        setDoctor(profileRes.data.user);
+
+        const patientsRes = await API.get("/auth/doctor-patients");
+        setPatients(patientsRes.data.patients || []);
       } catch (err) {
         setMessage(
           err.response?.data?.message || "Failed to load patients page",
@@ -20,7 +24,7 @@ function DoctorPatients() {
       }
     };
 
-    fetchDoctorProfile();
+    fetchData();
   }, []);
 
   if (message) {
@@ -34,6 +38,20 @@ function DoctorPatients() {
   if (!doctor) {
     return <div style={{ padding: "30px" }}>Loading patients page...</div>;
   }
+
+  const totalPatients = patients.length;
+
+  const criticalPatients = patients.filter((patient) =>
+    patient.medical_condition?.toLowerCase().includes("critical"),
+  ).length;
+
+  const needReview = patients.filter(
+    (patient) => patient.medical_condition,
+  ).length;
+
+  const stablePatients = patients.filter(
+    (patient) => patient.status === "active",
+  ).length;
 
   return (
     <>
@@ -49,7 +67,7 @@ function DoctorPatients() {
         <div className="stat-box blue">
           <div>
             <p>Total Assigned</p>
-            <h2>0</h2>
+            <h2>{totalPatients}</h2>
           </div>
           <span className="material-symbols-outlined">groups</span>
         </div>
@@ -57,7 +75,7 @@ function DoctorPatients() {
         <div className="stat-box red">
           <div>
             <p>Critical Priority</p>
-            <h2>0</h2>
+            <h2>{criticalPatients}</h2>
           </div>
           <span className="material-symbols-outlined">priority_high</span>
         </div>
@@ -65,7 +83,7 @@ function DoctorPatients() {
         <div className="stat-box orange">
           <div>
             <p>Need Review</p>
-            <h2>0</h2>
+            <h2>{needReview}</h2>
           </div>
           <span className="material-symbols-outlined">rate_review</span>
         </div>
@@ -73,7 +91,7 @@ function DoctorPatients() {
         <div className="stat-box green">
           <div>
             <p>Stable Cases</p>
-            <h2>0</h2>
+            <h2>{stablePatients}</h2>
           </div>
           <span className="material-symbols-outlined">verified</span>
         </div>
@@ -111,30 +129,79 @@ function DoctorPatients() {
             <span>Action</span>
           </div>
 
-          <div className="patients-row">
-            <div className="patient-cell">
-              <div className="patient-avatar">-</div>
-              <div>
-                <h3>No assigned patients yet</h3>
-                <p>Patients will appear after assignment.</p>
+          {patients.length === 0 ? (
+            <div className="patients-row">
+              <div className="patient-cell">
+                <div className="patient-avatar">-</div>
+                <div>
+                  <h3>No assigned patients yet</h3>
+                  <p>Patients will appear after assignment.</p>
+                </div>
+              </div>
+
+              <span>Not available</span>
+              <span>Not available</span>
+              <span className="priority-badge low">None</span>
+              <span className="status pending">Waiting</span>
+
+              <div className="row-actions">
+                <button className="mini-btn">Open Record</button>
               </div>
             </div>
+          ) : (
+            patients.map((patient) => {
+              const firstLetter = patient.full_name
+                ? patient.full_name.charAt(0).toUpperCase()
+                : "P";
 
-            <span>Not available</span>
-            <span>Not available</span>
-            <span className="priority-badge low">None</span>
-            <span className="status pending">Waiting</span>
+              const patientCode = `PT-${String(patient.patient_id).padStart(
+                3,
+                "0",
+              )}`;
 
-            <div className="row-actions">
-              <Link to="/doctor-patient-record">
-                <button className="mini-btn">Open Record</button>
-              </Link>
+              return (
+                <div className="patients-row" key={patient.patient_id}>
+                  <div className="patient-cell">
+                    <div className="patient-avatar">{firstLetter}</div>
 
-              <button className="icon-mini-btn">
-                <span className="material-symbols-outlined">chat</span>
-              </button>
-            </div>
-          </div>
+                    <div>
+                      <h3>{patient.full_name || "Unknown Patient"}</h3>
+                      <p>
+                        {patientCode} •{" "}
+                        {patient.city || patient.address || "No location"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span>
+                    {patient.medical_condition || "No condition recorded"}
+                  </span>
+
+                  <span>
+                    {patient.assigned_at
+                      ? new Date(patient.assigned_at).toLocaleDateString()
+                      : "Not available"}
+                  </span>
+
+                  <span className="priority-badge medium">Medium</span>
+
+                  <span className="status taken">
+                    {patient.status || "active"}
+                  </span>
+
+                  <div className="row-actions">
+                    <Link to="/doctor-patient-record">
+                      <button className="mini-btn">Open Record</button>
+                    </Link>
+
+                    <button className="icon-mini-btn">
+                      <span className="material-symbols-outlined">chat</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </section>
     </>

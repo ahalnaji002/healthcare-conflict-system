@@ -433,10 +433,55 @@ const getProfile = (req, res) => {
   });
 };
 
+// ================= GET DOCTOR PATIENTS =================
+const getDoctorPatients = (req, res) => {
+  const userId = req.user.id;
+
+  const sql = `
+    SELECT 
+      patients.patient_id,
+      patients.national_id,
+      patients.date_of_birth,
+      patients.gender,
+      patients.address,
+      patients.blood_type,
+      patients.chronic_diseases,
+      patients.medical_condition,
+      patients.emergency_contact,
+
+      users.full_name,
+      users.email,
+      users.phone,
+      users.status
+
+    FROM doctors
+    JOIN patient_doctor 
+      ON doctors.doctor_id = patient_doctor.doctor_id
+    JOIN patients 
+      ON patient_doctor.patient_id = patients.patient_id
+    JOIN users 
+      ON patients.user_id = users.id
+    WHERE doctors.user_id = ?
+  `;
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error("GET DOCTOR PATIENTS ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    return res.status(200).json({
+      message: "Doctor patients fetched successfully",
+      patients: results,
+    });
+  });
+};
+
 module.exports = {
   registerPatient,
   registerStaff,
   login,
   forgotPassword,
   getProfile,
+  getDoctorPatients,
 };

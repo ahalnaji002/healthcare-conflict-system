@@ -7,6 +7,7 @@ const {
   login,
   forgotPassword,
   getProfile,
+  getDoctorPatients,
 } = require("../controllers/authController");
 
 const verifyToken = require("../middleware/authMiddleware");
@@ -25,5 +26,8 @@ router.post("/forgot-password", forgotPassword);
 
 // Get Current User Profile (protected)
 router.get("/profile", verifyToken, getProfile);
+
+// Get Doctor Patients
+router.get("/doctor-patients", verifyToken, getDoctorPatients);
 
 module.exports = router;
