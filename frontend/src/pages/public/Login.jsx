@@ -2,6 +2,7 @@ import API from "../../services/api";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import "../../styles/dashboard.css";
+import AuthHeader from "../../components/AuthHeader";
 
 function Login() {
   const [selectedRole, setSelectedRole] = useState("patient");
@@ -62,27 +63,7 @@ function Login() {
 
   return (
     <div className="auth-page">
-      <header className="auth-header">
-        <Link to="/" className="auth-logo">
-          <div className="auth-logo-icon">
-            <span className="material-symbols-outlined">medical_services</span>
-          </div>
-          <div>
-            <h2>War Injuries Care</h2>
-            <p>Smart Medical Follow-up System</p>
-          </div>
-        </Link>
-
-        <nav className="auth-nav">
-          <Link to="/">Home</Link>
-          <a href="#about">About</a>
-          <a href="#services">Services</a>
-          <Link to="/join-request">Join Us</Link>
-          <Link to="/login" className="auth-nav-active">
-            Login
-          </Link>
-        </nav>
-      </header>
+      <AuthHeader />
 
       <main className="auth-main">
         <section className="auth-left">

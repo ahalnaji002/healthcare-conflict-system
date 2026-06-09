@@ -1,7 +1,7 @@
 require('dotenv').config(); // 👈 هذا السطر السحري الذي يقرأ ملف الـ .env تلقائياً
 const express = require("express");
 const cors = require("cors");
-const morgan = require('morgan');
+const morgan = require("morgan");
 require("dotenv").config();
 
 require("./config/db");
@@ -10,7 +10,7 @@ const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
-app.use(morgan('dev'));
+app.use(morgan("dev"));
 
 app.use(cors());
 app.use(express.json());
@@ -27,10 +27,6 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-// 1. استدعاء ملف المسار في الأعلى مع الملحقات الأخرى
-const emergencyRoutes = require('./routes/emergencyRoutes');
+const emergencyRoutes = require("./routes/emergencyRoutes");
 
-// 2. تفعيل المسار بداخل التطبيق (انزل أسفل عند تفعيل الـ Routes الأخرى وضع هذا السطر)
-app.use('/api/emergency', emergencyRoutes);
-
-
+app.use("/api/emergency", emergencyRoutes);

@@ -1,5 +1,61 @@
 const db = require("../config/db");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+
+// ================= EMAIL HELPER =================
+const sendEmail = (to, subject, html) => {
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+
+  const mailOptions = {
+    from: `"War Injuries Care" <${process.env.EMAIL_USER}>`,
+    to,
+    subject,
+    html,
+  };
+
+  transporter.sendMail(mailOptions, (err) => {
+    if (err) {
+      console.error("Email sending failed:", err);
+    } else {
+      console.log(`Email sent to ${to}`);
+    }
+  });
+};
+
+// ================= GET LANDING STATS =================
+const getLandingStats = (req, res) => {
+  const statsSql = `
+    SELECT
+      (SELECT COUNT(*) FROM patients) AS total_patients,
+      (SELECT COUNT(*) FROM doctors) AS total_doctors,
+      (SELECT COUNT(*) FROM ngos) AS total_ngos,
+      (SELECT COUNT(*) FROM join_requests WHERE status = 'pending') AS pending_join_requests,
+      (SELECT COUNT(*) FROM users WHERE status = 'active') AS active_users
+  `;
+
+  db.query(statsSql, (err, results) => {
+    if (err) {
+      console.error("GET LANDING STATS ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    return res.status(200).json({
+      message: "Landing stats fetched successfully",
+      stats: results[0],
+    });
+  });
+};
 
 // ================= REGISTER PATIENT =================
 const registerPatient = (req, res) => {
@@ -95,11 +151,57 @@ const registerPatient = (req, res) => {
                 return res.status(500).json({ message: "Registration failed" });
               }
 
+              // Send verification email
+              sendEmail(
+                email,
+                "Verify Your Account - War Injuries Care",
+                `
+  <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto; padding: 20px;">
+    <h2 style="color: #00478d; margin-bottom: 10px;">War Injuries Care</h2>
+
+    <p style="font-size: 15px; color: #333;">
+      Thank you for registering. Use the verification code below to activate your account:
+    </p>
+
+    <div style="
+      font-size: 36px;
+      font-weight: bold;
+      letter-spacing: 8px;
+      color: #00478d;
+      text-align: center;
+      padding: 22px;
+      background: #f0f4ff;
+      border-radius: 12px;
+      margin: 22px 0;
+    ">
+      ${verificationCode}
+    </div>
+
+    <p style="font-size: 14px; color: #555;">
+      This code expires in <strong>10 minutes</strong>.
+    </p>
+
+    <p style="font-size: 13px; color: #777;">
+      If you did not create an account, please ignore this email.
+    </p>
+  </div>
+  `,
+              );
+
               return res.status(201).json({
                 message:
                   "Patient registered successfully. Please verify your account.",
                 user_id: userId,
-                verification_code: verificationCode, // dev only
+                email,
+                role: "patient",
+              });
+
+              return res.status(201).json({
+                message:
+                  "Patient registered successfully. Please verify your account.",
+                user_id: userId,
+                email,
+                role: "patient",
               });
             });
           },
@@ -702,9 +804,41 @@ const resendCode = (req, res) => {
           return res.status(500).json({ message: "Server error" });
         }
 
+        // Send new verification code by email
+        sendEmail(
+          user.email,
+          "New Verification Code - War Injuries Care",
+          `
+  <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto; padding: 20px;">
+    <h2 style="color: #00478d; margin-bottom: 10px;">War Injuries Care</h2>
+
+    <p style="font-size: 15px; color: #333;">
+      Your new verification code is:
+    </p>
+
+    <div style="
+      font-size: 36px;
+      font-weight: bold;
+      letter-spacing: 8px;
+      color: #00478d;
+      text-align: center;
+      padding: 22px;
+      background: #f0f4ff;
+      border-radius: 12px;
+      margin: 22px 0;
+    ">
+      ${code}
+    </div>
+
+    <p style="font-size: 14px; color: #555;">
+      This code expires in <strong>10 minutes</strong>.
+    </p>
+  </div>
+  `,
+        );
+
         return res.status(200).json({
-          message: "A new verification code has been sent.",
-          code: code,
+          message: "A new verification code has been sent to your email.",
         });
       });
     });
@@ -809,4 +943,5 @@ module.exports = {
   getPatientDoctor,
   verifyCode,
   resendCode,
+  getLandingStats,
 };

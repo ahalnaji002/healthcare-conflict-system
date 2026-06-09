@@ -304,7 +304,6 @@
   .roles-grid {
     grid-template-columns: 1fr;
   }
-<<<<<<< HEAD
 }
 
 .emergency-action {
@@ -312,7 +311,7 @@
   border: none;
   border-radius: 12px;
   background: #ba1a1a;
-  color: white;
+  color: white !important;
   padding: 0 18px;
   display: flex;
   align-items: center;
@@ -324,10 +323,3 @@
 .emergency-layout {
   grid-template-columns: 1fr;
 }
-
-.emergency-action {
-  color: white !important;
-}
-=======
-}
->>>>>>> 775220ceafd827d2a4e160e8ba57bd36af4565a8

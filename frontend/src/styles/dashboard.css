@@ -4311,3 +4311,545 @@
     text-align: center;
   }
 }
+
+/* =========================================================
+   Public pages polish: Landing, Logo, and Login header
+   Keep this section at the end of dashboard.css
+========================================================= */
+
+/* Landing cards polish - scoped to avoid affecting login role buttons */
+.features-section .feature-box,
+.roles-section .role-card {
+  position: relative;
+  overflow: hidden;
+  transition: 0.25s ease;
+}
+
+.features-section .feature-box::before,
+.roles-section .role-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, #005eb8, #0d9488);
+  opacity: 0;
+  transition: 0.25s ease;
+}
+
+.features-section .feature-box:hover,
+.roles-section .role-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(0, 71, 141, 0.12);
+  border-color: #a9c7ff;
+}
+
+.features-section .feature-box:hover::before,
+.roles-section .role-card:hover::before {
+  opacity: 1;
+}
+
+.feature-icon {
+  box-shadow: inset 0 0 0 1px #d5e3fd;
+  transition: 0.25s ease;
+}
+
+.features-section .feature-box:hover .feature-icon {
+  transform: scale(1.08) rotate(-3deg);
+  background: #d6e3ff;
+}
+
+.features-section h2,
+.roles-section h2 {
+  position: relative;
+  display: block;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  padding-bottom: 12px;
+}
+
+.features-section h2::after,
+.roles-section h2::after {
+  content: "";
+  position: absolute;
+  width: 350px;
+  height: 3px;
+  border-radius: 999px;
+  background: #005eb8;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+}
+
+.features-section,
+.roles-section {
+  position: relative;
+  background: #f8f9ff;
+}
+
+.landing-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 -10px 30px rgba(13, 28, 47, 0.08);
+}
+
+.landing-footer p {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.landing-header {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 71, 141, 0.04);
+}
+
+.logo-icon {
+  box-shadow: 0 10px 22px rgba(0, 71, 141, 0.18);
+}
+
+.nav-links a {
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #0d1c2f;
+  text-decoration: none;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+
+  transition: 0.2s ease;
+}
+
+/* Landing role cards with icons */
+.role-card-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 150px;
+}
+
+.role-image {
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: 0.25s ease;
+}
+
+.role-image span {
+  font-size: 36px;
+}
+
+.role-image.patient-role {
+  background: #d6e3ff;
+  color: #005eb8;
+}
+
+.role-image.doctor-role {
+  background: #d9f8ef;
+  color: #0d9488;
+}
+
+.role-image.ngo-role {
+  background: #fff1d6;
+  color: #9a5b00;
+}
+
+.role-image.admin-role {
+  background: #fee2e2;
+  color: #ba1a1a;
+}
+
+.role-card-with-icon:hover .role-image {
+  transform: scale(1.06) rotate(-3deg);
+}
+
+/* Hero preview animation */
+.hero-card {
+  animation: heroCardFloatIn 0.9s ease forwards;
+  transition: 0.3s ease;
+}
+
+.hero-card:hover {
+  transform: translateY(-6px);
+}
+
+@keyframes heroCardFloatIn {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.preview-header span {
+  animation: previewDotPulse 1.6s ease-in-out infinite;
+}
+
+.preview-header span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.preview-header span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes previewDotPulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+}
+
+.dashboard-preview .stat-card {
+  opacity: 0;
+  animation: statCardSlide 0.65s ease forwards;
+  transition: 0.25s ease;
+}
+
+.dashboard-preview .stat-card:nth-of-type(1) {
+  animation-delay: 0.15s;
+}
+
+.dashboard-preview .stat-card:nth-of-type(2) {
+  animation-delay: 0.3s;
+}
+
+.dashboard-preview .stat-card:nth-of-type(3) {
+  animation-delay: 0.45s;
+}
+
+@keyframes statCardSlide {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.dashboard-preview .stat-card:hover {
+  transform: translateY(-5px) scale(1.015);
+  box-shadow: 0 14px 28px rgba(0, 71, 141, 0.12);
+}
+
+.dashboard-preview .stat-card h3 {
+  font-size: 22px;
+  font-weight: 900;
+  margin-bottom: 10px;
+  animation: numberPop 0.5s ease;
+}
+
+@keyframes numberPop {
+  from {
+    transform: scale(0.75);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Shared app logo */
+.app-logo {
+  display: flex;
+  align-items: center;
+}
+
+.app-logo img {
+  display: block;
+  object-fit: contain;
+}
+
+.app-logo-default img {
+  width: 230px;
+  height: auto;
+}
+
+.app-logo-sidebar img {
+  width: 170px;
+  height: auto;
+}
+
+.app-logo-auth {
+  justify-content: center;
+}
+
+.app-logo-auth img {
+  width: 240px;
+  height: auto;
+}
+
+.app-logo-small img {
+  width: 210px;
+  height: auto;
+}
+
+.app-logo-login img {
+  width: 225px;
+  max-height: 82px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.form-header .app-logo img,
+.landing-header .app-logo img {
+  max-height: 72px;
+  width: auto;
+}
+
+.form-header,
+.landing-header {
+  min-height: 96px;
+}
+
+/* Clean login header */
+
+/* ================= Unified Auth Header ================= */
+
+.auth-shared-header {
+  width: 100%;
+  min-height: 104px;
+  padding: 16px 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8f9ff;
+  border-bottom: 1px solid #d5e3fd;
+  box-sizing: border-box;
+}
+
+.auth-shared-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.auth-shared-logo .app-logo-login img {
+  width: 225px;
+  max-height: 82px;
+  object-fit: contain;
+  display: block;
+}
+
+.auth-shared-nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.auth-shared-nav a {
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  color: #0d1c2f;
+  text-decoration: none;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.auth-shared-nav a:hover {
+  color: #00478d;
+}
+
+.auth-shared-nav .auth-blue-btn {
+  width: 190px;
+  height: 56px;
+  padding: 0;
+  border-radius: 999px;
+  background: #00478d;
+  color: white !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.auth-shared-nav .auth-blue-btn:hover {
+  background: #00376d;
+  color: white !important;
+}
+
+.auth-shared-nav .auth-emergency-link {
+  min-width: 240px;
+  height: 56px;
+  padding: 0 24px;
+  border-radius: 12px;
+  background: #ba1a1a;
+  color: white !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.auth-shared-nav .auth-emergency-link:hover {
+  background: #991b1b;
+  color: white !important;
+}
+
+.auth-shared-nav .auth-emergency-link span {
+  font-size: 26px;
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
+  .auth-shared-header {
+    min-height: auto;
+    padding: 18px 24px;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .auth-shared-logo .app-logo-login img {
+    width: 190px;
+  }
+
+  .auth-shared-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .auth-shared-nav a,
+  .auth-shared-nav .auth-blue-btn,
+  .auth-shared-nav .auth-emergency-link {
+    height: 46px;
+    font-size: 15px;
+  }
+
+  .auth-shared-nav .auth-emergency-link {
+    min-width: auto;
+  }
+}
+
+/* ================= Global Font Fix ================= */
+
+body,
+button,
+input,
+select,
+textarea,
+a {
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+/* ================= Unified Public Headers Font ================= */
+
+.auth-shared-nav a,
+.nav-links a {
+  height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+
+  color: #0d1c2f;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* Blue button: Login or Join */
+.auth-shared-nav .auth-blue-btn,
+.landing-header .login-link {
+  width: auto;
+  min-width: 120px;
+  height: 50px;
+  padding: 0 30px;
+
+  border-radius: 999px;
+  background: #00478d;
+  color: white !important;
+
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Emergency button */
+.auth-shared-nav .auth-emergency-link,
+.landing-header .emergency-action {
+  min-width: 210px;
+  height: 50px;
+  padding: 0 22px;
+
+  border-radius: 12px;
+  background: #ba1a1a;
+  color: white !important;
+
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  text-decoration: none;
+  border: none;
+}
+
+.auth-shared-nav .auth-emergency-link span,
+.landing-header .emergency-action span {
+  font-size: 24px;
+  line-height: 1;
+}
+
+/* Hover */
+.auth-shared-nav a:hover,
+.nav-links a:hover {
+  color: #00478d;
+}
+
+.auth-shared-nav .auth-blue-btn:hover,
+.landing-header .login-link:hover {
+  background: #00376d;
+  color: white !important;
+}
+
+.auth-shared-nav .auth-emergency-link:hover,
+.landing-header .emergency-action:hover {
+  background: #991b1b;
+  color: white !important;
+}
