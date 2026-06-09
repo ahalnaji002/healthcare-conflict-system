@@ -25,3 +25,25 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// backend/server.js
+
+
+
+// تفعيل قراءة الـ JSON في الـ Request Body
+app.use(express.json()); 
+
+// استيراد المسارات الطبية
+const medicalRoutes = require('./routes/medicalRoutes');
+
+// ربط المسار بالبادئة المطلوبة
+app.use('/api/medical', medicalRoutes);
+
+// بقية إعدادات السيرفر...
+
+
+// 1. استدعاء ملف المسار في الأعلى مع الملحقات الأخرى
+const emergencyRoutes = require('./routes/emergencyRoutes');
+
+// 2. تفعيل المسار بداخل التطبيق (انزل أسفل عند تفعيل الـ Routes الأخرى وضع هذا السطر)
+app.use('/api/emergency', emergencyRoutes);
