@@ -1,4 +1,10 @@
+import { useNavigate } from "react-router-dom";
+
 function DoctorTopbar({ title, subtitle, doctor }) {
+  const navigate = useNavigate();
+
+  const doctorName = doctor?.name || doctor?.full_name || "Doctor";
+
   return (
     <header className="dashboard-topbar">
       <div>
@@ -7,18 +13,22 @@ function DoctorTopbar({ title, subtitle, doctor }) {
       </div>
 
       <div className="topbar-actions">
-        <button className="emergency-action">
+        <button
+          type="button"
+          className="emergency-action"
+          onClick={() => navigate("/emergency-alert")}
+        >
           <span className="material-symbols-outlined">notifications</span>
           Critical Alerts
         </button>
 
         <div className="topbar-user">
           <div className="user-avatar">
-            {doctor?.name ? doctor.name.charAt(0).toUpperCase() : "D"}
+            {doctorName ? doctorName.charAt(0).toUpperCase() : "D"}
           </div>
 
           <div className="topbar-user-info">
-            <h4>Dr. {doctor?.name || "Doctor"}</h4>
+            <h4>Dr. {doctorName}</h4>
             <p>{doctor?.specialty || doctor?.role || "doctor"}</p>
           </div>
         </div>

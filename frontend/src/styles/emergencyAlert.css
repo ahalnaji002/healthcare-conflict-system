@@ -450,3 +450,24 @@
     box-sizing: border-box;
   }
 }
+
+.back-btn {
+  border: none;
+  background: transparent;
+  color: #0d1c2f;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+}
+
+.back-btn span {
+  font-size: 22px;
+}
+
+.back-btn:hover {
+  color: #00478d;
+}

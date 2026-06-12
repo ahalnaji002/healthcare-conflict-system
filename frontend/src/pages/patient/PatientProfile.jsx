@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
-import PatientTopbar from "../../components/PatientTopbar";
 
 function PatientProfile() {
   const [user, setUser] = useState(null);
@@ -51,12 +50,6 @@ function PatientProfile() {
 
   return (
     <>
-      <PatientTopbar
-        title="Patient Profile"
-        subtitle="Manage your personal, medical, and emergency contact information."
-        user={user}
-      />
-
       <section className="profile-layout">
         <div className="content-left">
           <div className="panel profile-main-card">
@@ -66,7 +59,8 @@ function PatientProfile() {
               </div>
 
               <div>
-                <h2>{user.name || "Patient"}</h2>
+                <h2>{user.name || user.full_name || "Patient"}</h2>
+
                 <p>
                   Patient ID:{" "}
                   {user.patient_id
@@ -76,6 +70,7 @@ function PatientProfile() {
 
                 <div className="profile-badges">
                   <span className="tag blue-tag">Active Patient</span>
+
                   <span className="tag green-tag">
                     {user.status || "active"}
                   </span>
@@ -86,6 +81,7 @@ function PatientProfile() {
             <div className="profile-info-grid">
               <div className="profile-info-item">
                 <span className="material-symbols-outlined">mail</span>
+
                 <div>
                   <p>Email</p>
                   <h3>{user.email || "Not provided"}</h3>
@@ -94,6 +90,7 @@ function PatientProfile() {
 
               <div className="profile-info-item">
                 <span className="material-symbols-outlined">call</span>
+
                 <div>
                   <p>Phone</p>
                   <h3>{user.phone || "Not provided"}</h3>
@@ -102,6 +99,7 @@ function PatientProfile() {
 
               <div className="profile-info-item">
                 <span className="material-symbols-outlined">location_on</span>
+
                 <div>
                   <p>Address</p>
                   <h3>{user.address || "Not provided"}</h3>
@@ -110,6 +108,7 @@ function PatientProfile() {
 
               <div className="profile-info-item">
                 <span className="material-symbols-outlined">cake</span>
+
                 <div>
                   <p>Date of Birth</p>
                   <h3>{formattedDate}</h3>
@@ -131,7 +130,10 @@ function PatientProfile() {
             <div className="profile-form-grid">
               <div className="profile-field">
                 <label>Full Name</label>
-                <input value={user.name || ""} readOnly />
+                <input
+                  value={user.name || user.full_name || "Not provided"}
+                  readOnly
+                />
               </div>
 
               <div className="profile-field">
@@ -172,6 +174,7 @@ function PatientProfile() {
             <div className="medical-history-box">
               <div className="history-item">
                 <span className="material-symbols-outlined">healing</span>
+
                 <div>
                   <h3>Primary Injury</h3>
                   <p>
@@ -182,6 +185,7 @@ function PatientProfile() {
 
               <div className="history-item">
                 <span className="material-symbols-outlined">allergy</span>
+
                 <div>
                   <h3>Chronic Diseases</h3>
                   <p>
@@ -192,6 +196,7 @@ function PatientProfile() {
 
               <div className="history-item">
                 <span className="material-symbols-outlined">medication</span>
+
                 <div>
                   <h3>Emergency Contact</h3>
                   <p>{user.emergency_contact || "Not provided"}</p>
@@ -233,13 +238,17 @@ function PatientProfile() {
 
               <div>
                 <h3>
-                  {doctor ? `Dr. ${doctor.full_name}` : "Not assigned yet"}
+                  {doctor
+                    ? `Dr. ${doctor.full_name || doctor.name || "Doctor"}`
+                    : "Not assigned yet"}
                 </h3>
+
                 <p>
                   {doctor
                     ? doctor.specialty || "Specialty not provided"
                     : "Doctor information will appear here."}
                 </p>
+
                 {doctor && (
                   <p>
                     {doctor.clinic_name ||
@@ -264,6 +273,7 @@ function PatientProfile() {
             <div className="security-list">
               <div className="security-item">
                 <span className="material-symbols-outlined">lock</span>
+
                 <div>
                   <h3>Password</h3>
                   <p>Protected account password.</p>
@@ -272,6 +282,7 @@ function PatientProfile() {
 
               <div className="security-item">
                 <span className="material-symbols-outlined">verified_user</span>
+
                 <div>
                   <h3>Account Verification</h3>
                   <p>

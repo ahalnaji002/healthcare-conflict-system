@@ -2,27 +2,23 @@ import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
-import DoctorTopbar from "../../components/DoctorTopbar";
 
 function DoctorPatientRecord() {
   const { patientId } = useParams();
 
-  const [doctor, setDoctor] = useState(null);
   const [patient, setPatient] = useState(null);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchPatientRecord = async () => {
       try {
-        const profileRes = await API.get("/auth/profile");
-        setDoctor(profileRes.data.user);
-
-        if (patientId) {
-          const patientRes = await API.get(
-            `/auth/doctor-patients/${patientId}`,
-          );
-          setPatient(patientRes.data.patient);
+        if (!patientId) {
+          setMessage("Patient ID is missing.");
+          return;
         }
+
+        const patientRes = await API.get(`/auth/doctor-patients/${patientId}`);
+        setPatient(patientRes.data.patient);
       } catch (err) {
         setMessage(
           err.response?.data?.message || "Failed to load patient record",
@@ -30,7 +26,7 @@ function DoctorPatientRecord() {
       }
     };
 
-    fetchData();
+    fetchPatientRecord();
   }, [patientId]);
 
   if (message) {
@@ -41,7 +37,7 @@ function DoctorPatientRecord() {
     );
   }
 
-  if (!doctor || !patient) {
+  if (!patient) {
     return <div style={{ padding: "30px" }}>Loading patient record...</div>;
   }
 
@@ -61,14 +57,6 @@ function DoctorPatientRecord() {
 
   return (
     <>
-      <DoctorTopbar
-        title="Patient Medical Record"
-        subtitle={`Welcome back, Dr. ${
-          doctor.name || "Doctor"
-        }. Review patient history, injury details, medication, and progress notes.`}
-        doctor={doctor}
-      />
-
       <section className="record-layout">
         <div className="content-left">
           <div className="panel record-profile-card">
@@ -77,15 +65,18 @@ function DoctorPatientRecord() {
 
               <div>
                 <h2>{patient.full_name || "Unknown Patient"}</h2>
+
                 <p>
                   Patient ID: {patientCode} • {patient.address || "No location"}
                 </p>
 
                 <div className="profile-badges">
                   <span className="priority-badge medium">Medium Priority</span>
+
                   <span className="tag blue-tag">
                     {patient.medical_condition || "No condition recorded"}
                   </span>
+
                   <span className="tag green-tag">
                     {patient.status || "active"}
                   </span>
@@ -176,6 +167,7 @@ function DoctorPatientRecord() {
                 <h3>
                   {patient.medical_condition || "No medical condition recorded"}
                 </h3>
+
                 <p>
                   Chronic diseases:{" "}
                   {patient.chronic_diseases || "No chronic diseases recorded."}
@@ -244,6 +236,7 @@ function DoctorPatientRecord() {
             <div className="record-med-list">
               <div className="record-med-item">
                 <span className="material-symbols-outlined">medication</span>
+
                 <div>
                   <h3>No medication data yet</h3>
                   <p>Medication records will appear here later.</p>
@@ -282,6 +275,7 @@ function DoctorPatientRecord() {
 
             <div className="alert-card">
               <span className="material-symbols-outlined">notifications</span>
+
               <div>
                 <h3>No active alerts</h3>
                 <p>Patient alerts will appear here.</p>

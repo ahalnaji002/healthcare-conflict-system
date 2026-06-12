@@ -1,40 +1,8 @@
 import "../../styles/dashboard.css";
-import PatientTopbar from "../../components/PatientTopbar";
-import { useEffect, useState } from "react";
-import API from "../../services/api";
 
 function PatientChat() {
-  const [user, setUser] = useState(null);
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await API.get("/auth/profile");
-        setUser(res.data.user);
-      } catch (err) {
-        setMessage(err.response?.data?.message || "Failed to load page");
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
-  if (message) {
-    return <div style={{ padding: "30px", color: "red" }}>{message}</div>;
-  }
-
-  if (!user) {
-    return <div style={{ padding: "30px" }}>Loading...</div>;
-  }
   return (
     <>
-      <PatientTopbar
-        title="Doctor Chat"
-        subtitle={`Welcome back, ${user.name || "Patient"}. Communicate with your assigned doctor.`}
-        user={user}
-      />
-
       <section className="chat-layout">
         <div className="panel chat-contacts-panel">
           <div className="panel-header">
@@ -133,6 +101,7 @@ function PatientChat() {
             <div className="message-row patient-message">
               <div className="message-bubble attachment-bubble">
                 <span className="material-symbols-outlined">image</span>
+
                 <div>
                   <strong>Wound update photo</strong>
                   <small>Uploaded successfully</small>
@@ -159,6 +128,7 @@ function PatientChat() {
 
           <div className="care-summary-card">
             <span className="material-symbols-outlined">assignment</span>
+
             <div>
               <h3>Current Plan</h3>
               <p>Wound care + medication + therapy preparation.</p>
@@ -167,6 +137,7 @@ function PatientChat() {
 
           <div className="care-summary-card">
             <span className="material-symbols-outlined">event</span>
+
             <div>
               <h3>Next Visit</h3>
               <p>29 May • 10:30 AM • Online consultation.</p>
@@ -175,6 +146,7 @@ function PatientChat() {
 
           <div className="care-summary-card warning-summary">
             <span className="material-symbols-outlined">warning</span>
+
             <div>
               <h3>Emergency Note</h3>
               <p>
