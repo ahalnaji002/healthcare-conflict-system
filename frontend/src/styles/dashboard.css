@@ -4889,3 +4889,25 @@ a {
 .emergency-alerts-row {
   grid-template-columns: 0.8fr 1fr 1fr 1.2fr 1.4fr 1fr 1fr;
 }
+
+.error-message {
+  color: #d93025;
+  background: #fdecea;
+  border: 1px solid #f5c2c7;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 12px 0;
+}
+
+.success-message {
+  color: #137333;
+  background: #e6f4ea;
+  border: 1px solid #b7dfc4;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 12px 0;
+}
