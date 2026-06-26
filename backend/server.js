@@ -1,4 +1,4 @@
-require('dotenv').config(); // 👈 هذا السطر السحري الذي يقرأ ملف الـ .env تلقائياً
+require("dotenv").config(); // 👈 هذا السطر السحري الذي يقرأ ملف الـ .env تلقائياً
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
@@ -30,3 +30,6 @@ app.listen(PORT, () => {
 const emergencyRoutes = require("./routes/emergencyRoutes");
 
 app.use("/api/emergency", emergencyRoutes);
+
+const adminRoutes = require("./routes/adminRoutes");
+app.use("/api/admin", adminRoutes);
