@@ -1,14 +1,43 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
 
 function AdminDashboard() {
+  const [stats, setStats] = useState(null);
+  const [recentRequests, setRecentRequests] = useState([]);
+
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/admin/dashboard", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) return;
+
+        setStats(data.stats);
+        setRecentRequests(data.recentRequests);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchDashboard();
+  }, [token]);
+
   return (
     <>
       <section className="stats-grid">
         <div className="stat-box blue">
           <div>
             <p>Total Users</p>
-            <h2>1,248</h2>
+            <h2>{stats?.total_users ?? 0}</h2>{" "}
           </div>
           <span className="material-symbols-outlined">groups</span>
         </div>
@@ -16,7 +45,7 @@ function AdminDashboard() {
         <div className="stat-box orange">
           <div>
             <p>Pending Join Requests</p>
-            <h2>23</h2>
+            <h2>{stats?.pending_join_requests ?? 0}</h2>{" "}
           </div>
           <span className="material-symbols-outlined">how_to_reg</span>
         </div>
@@ -24,7 +53,7 @@ function AdminDashboard() {
         <div className="stat-box green">
           <div>
             <p>Active Cases</p>
-            <h2>386</h2>
+            <h2>{stats?.active_cases ?? 0}</h2>{" "}
           </div>
           <span className="material-symbols-outlined">medical_services</span>
         </div>
@@ -32,7 +61,7 @@ function AdminDashboard() {
         <div className="stat-box red">
           <div>
             <p>Security Alerts</p>
-            <h2>4</h2>
+            <h2>{stats?.security_alerts ?? 0}</h2>{" "}
           </div>
           <span className="material-symbols-outlined">warning</span>
         </div>
@@ -60,7 +89,7 @@ function AdminDashboard() {
 
                 <div>
                   <h3>Patients</h3>
-                  <p>984 registered patients</p>
+                  <p>{stats?.total_patients ?? 0} registered patients</p>
                 </div>
 
                 <strong>78%</strong>
@@ -71,7 +100,7 @@ function AdminDashboard() {
 
                 <div>
                   <h3>Doctors</h3>
-                  <p>142 approved doctors</p>
+                  <p>{stats?.total_doctors ?? 0} approved doctors</p>
                 </div>
 
                 <strong>11%</strong>
@@ -84,7 +113,7 @@ function AdminDashboard() {
 
                 <div>
                   <h3>NGOs</h3>
-                  <p>86 active organizations</p>
+                  <p>{stats?.total_ngos ?? 0} active organizations</p>
                 </div>
 
                 <strong>7%</strong>
@@ -97,7 +126,7 @@ function AdminDashboard() {
 
                 <div>
                   <h3>Admins</h3>
-                  <p>36 system managers</p>
+                  <p>{stats?.total_admins ?? 0} system managers</p>
                 </div>
 
                 <strong>4%</strong>
@@ -125,52 +154,39 @@ function AdminDashboard() {
                 <span>Status</span>
                 <span>Action</span>
               </div>
+              {recentRequests.length === 0 ? (
+                <div className="admin-row">
+                  <span>No pending join requests found.</span>
+                </div>
+              ) : (
+                recentRequests.map((request) => (
+                  <div className="admin-row" key={request.join_request_id}>
+                    <div className="patient-cell">
+                      <div className="patient-avatar">
+                        {request.name?.charAt(0).toUpperCase() || "?"}
+                      </div>
 
-              <div className="admin-row">
-                <div className="patient-cell">
-                  <div className="patient-avatar">D</div>
+                      <div>
+                        <h3>{request.name}</h3>
+                        <p>{request.email}</p>
+                      </div>
+                    </div>
 
-                  <div>
-                    <h3>Dr. Lina Omar</h3>
-                    <p>lina.omar@example.com</p>
+                    <span>
+                      {request.request_type === "doctor" ? "Doctor" : "NGO"}
+                    </span>
+                    <span>{request.specialty || "N/A"}</span>
+                    <span className="status pending">Pending</span>
+
+                    <div className="row-actions">
+                      <button className="mini-btn">Approve</button>
+                      <button className="icon-mini-btn">
+                        <span className="material-symbols-outlined">close</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-
-                <span>Doctor</span>
-                <span>Surgery</span>
-                <span className="status pending">Pending</span>
-
-                <div className="row-actions">
-                  <button className="mini-btn">Approve</button>
-
-                  <button className="icon-mini-btn">
-                    <span className="material-symbols-outlined">close</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="admin-row">
-                <div className="patient-cell">
-                  <div className="patient-avatar">N</div>
-
-                  <div>
-                    <h3>Care Bridge NGO</h3>
-                    <p>contact@carebridge.org</p>
-                  </div>
-                </div>
-
-                <span>NGO</span>
-                <span>Medical Aid</span>
-                <span className="status pending">Pending</span>
-
-                <div className="row-actions">
-                  <button className="mini-btn">Approve</button>
-
-                  <button className="icon-mini-btn">
-                    <span className="material-symbols-outlined">close</span>
-                  </button>
-                </div>
-              </div>
+                ))
+              )}
             </div>
           </div>
 

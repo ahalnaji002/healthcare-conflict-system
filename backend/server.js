@@ -1,4 +1,4 @@
-require("dotenv").config(); // 👈 هذا السطر السحري الذي يقرأ ملف الـ .env تلقائياً
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
