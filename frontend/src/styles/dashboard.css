@@ -393,19 +393,37 @@
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  margin: 22px auto;
+  margin: 20px auto;
+  display: grid;
+  place-items: center;
   background:
-    radial-gradient(circle, white 56%, transparent 57%),
-    conic-gradient(#00478d 0 72%, #d5e3fd 72% 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    radial-gradient(circle, #ffffff 58%, transparent 59%),
+    conic-gradient(#00478d var(--progress, 0%), #dbe8ff 0);
+  animation: softPulse 1.5s ease;
 }
 
 .progress-circle span {
   font-size: 30px;
   font-weight: 800;
   color: #00478d;
+}
+
+.progress-circle span,
+.health-percent {
+  font-size: 32px;
+  font-weight: 800;
+  color: #00478d;
+}
+
+@keyframes softPulse {
+  from {
+    transform: scale(0.96);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .progress-panel p {

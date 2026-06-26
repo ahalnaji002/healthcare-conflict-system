@@ -6,6 +6,34 @@ function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [recentRequests, setRecentRequests] = useState([]);
 
+  const systemHealth = stats
+    ? Math.max(
+        0,
+        100 - stats.security_alerts * 10 - stats.pending_join_requests * 2,
+      )
+    : 0;
+
+  const [animatedHealth, setAnimatedHealth] = useState(0);
+
+  useEffect(() => {
+    let current = 0;
+
+    const interval = setInterval(() => {
+      const speed = Math.max(1, Math.ceil((systemHealth - current) / 12));
+
+      current += speed;
+
+      if (current >= systemHealth) {
+        current = systemHealth;
+        clearInterval(interval);
+      }
+
+      setAnimatedHealth(current);
+    }, 25);
+
+    return () => clearInterval(interval);
+  }, [systemHealth]);
+
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -92,7 +120,14 @@ function AdminDashboard() {
                   <p>{stats?.total_patients ?? 0} registered patients</p>
                 </div>
 
-                <strong>78%</strong>
+                <strong>
+                  {stats?.total_users
+                    ? Math.round(
+                        (stats.total_patients / stats.total_users) * 100,
+                      )
+                    : 0}
+                  %
+                </strong>
               </div>
 
               <div className="admin-role-card">
@@ -103,7 +138,14 @@ function AdminDashboard() {
                   <p>{stats?.total_doctors ?? 0} approved doctors</p>
                 </div>
 
-                <strong>11%</strong>
+                <strong>
+                  {stats?.total_users
+                    ? Math.round(
+                        (stats.total_doctors / stats.total_users) * 100,
+                      )
+                    : 0}
+                  %
+                </strong>
               </div>
 
               <div className="admin-role-card">
@@ -116,7 +158,12 @@ function AdminDashboard() {
                   <p>{stats?.total_ngos ?? 0} active organizations</p>
                 </div>
 
-                <strong>7%</strong>
+                <strong>
+                  {stats?.total_users
+                    ? Math.round((stats.total_ngos / stats.total_users) * 100)
+                    : 0}
+                  %
+                </strong>
               </div>
 
               <div className="admin-role-card">
@@ -129,7 +176,12 @@ function AdminDashboard() {
                   <p>{stats?.total_admins ?? 0} system managers</p>
                 </div>
 
-                <strong>4%</strong>
+                <strong>
+                  {stats?.total_users
+                    ? Math.round((stats.total_admins / stats.total_users) * 100)
+                    : 0}
+                  %
+                </strong>
               </div>
             </div>
           </div>
@@ -250,8 +302,11 @@ function AdminDashboard() {
           <div className="panel progress-panel">
             <h2>System Health</h2>
 
-            <div className="progress-circle">
-              <span>94%</span>
+            <div
+              className="progress-circle"
+              style={{ "--progress": `${animatedHealth}%` }}
+            >
+              <span className="health-percent">{animatedHealth}%</span>
             </div>
 
             <p>
