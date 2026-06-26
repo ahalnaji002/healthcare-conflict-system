@@ -1,39 +1,121 @@
+import { useEffect, useMemo, useState } from "react";
 import "../../styles/dashboard.css";
 
 function AdminJoinRequests() {
+  const [requests, setRequests] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("All Types");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchPendingRegistrations = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const res = await fetch(
+          "http://localhost:5000/api/admin/pending-registrations",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.message || "Failed to fetch pending registrations");
+          return;
+        }
+
+        setRequests(data.requests || []);
+      } catch (err) {
+        console.error("FETCH PENDING REGISTRATIONS ERROR:", err);
+        setError("Server connection error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPendingRegistrations();
+  }, [token]);
+
+  const filteredRequests = useMemo(() => {
+    return requests.filter((request) => {
+      const searchValue = searchTerm.toLowerCase();
+
+      const matchesSearch =
+        request.name?.toLowerCase().includes(searchValue) ||
+        request.email?.toLowerCase().includes(searchValue) ||
+        request.phone?.toLowerCase().includes(searchValue) ||
+        request.specialty?.toLowerCase().includes(searchValue) ||
+        request.organization_type?.toLowerCase().includes(searchValue) ||
+        request.license_number?.toLowerCase().includes(searchValue);
+
+      const matchesType =
+        typeFilter === "All Types" ||
+        (typeFilter === "Doctors" && request.request_type === "doctor") ||
+        (typeFilter === "NGOs" && request.request_type === "ngo");
+
+      return matchesSearch && matchesType;
+    });
+  }, [requests, searchTerm, typeFilter]);
+
+  const formatSubmittedDate = (dateValue) => {
+    if (!dateValue) return "N/A";
+
+    const date = new Date(dateValue);
+
+    return date.toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  };
+
+  const getInitial = (name) => {
+    if (!name) return "?";
+    return name.trim().charAt(0).toUpperCase();
+  };
+
   return (
     <>
       <section className="stats-grid">
         <div className="stat-box orange">
           <div>
             <p>Pending Requests</p>
-            <h2>23</h2>
+            <h2>{requests.length}</h2>
           </div>
           <span className="material-symbols-outlined">pending_actions</span>
         </div>
 
         <div className="stat-box green">
           <div>
-            <p>Approved This Week</p>
-            <h2>41</h2>
+            <p>Doctors</p>
+            <h2>
+              {requests.filter((r) => r.request_type === "doctor").length}
+            </h2>
           </div>
-          <span className="material-symbols-outlined">check_circle</span>
-        </div>
-
-        <div className="stat-box red">
-          <div>
-            <p>Rejected</p>
-            <h2>7</h2>
-          </div>
-          <span className="material-symbols-outlined">cancel</span>
+          <span className="material-symbols-outlined">medical_services</span>
         </div>
 
         <div className="stat-box blue">
           <div>
-            <p>Need Documents</p>
-            <h2>9</h2>
+            <p>NGOs</p>
+            <h2>{requests.filter((r) => r.request_type === "ngo").length}</h2>
           </div>
-          <span className="material-symbols-outlined">description</span>
+          <span className="material-symbols-outlined">volunteer_activism</span>
+        </div>
+
+        <div className="stat-box red">
+          <div>
+            <p>Displayed</p>
+            <h2>{filteredRequests.length}</h2>
+          </div>
+          <span className="material-symbols-outlined">filter_alt</span>
         </div>
       </section>
 
@@ -49,10 +131,19 @@ function AdminJoinRequests() {
               <div className="table-actions">
                 <div className="search-box">
                   <span className="material-symbols-outlined">search</span>
-                  <input type="text" placeholder="Search applicants..." />
+                  <input
+                    type="text"
+                    placeholder="Search applicants..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
 
-                <select className="filter-select">
+                <select
+                  className="filter-select"
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                >
                   <option>All Types</option>
                   <option>Doctors</option>
                   <option>NGOs</option>
@@ -60,129 +151,92 @@ function AdminJoinRequests() {
               </div>
             </div>
 
+            {error && <p className="error-message">{error}</p>}
+            {loading && <p>Loading pending registrations...</p>}
+
+            {!loading && !error && filteredRequests.length === 0 && (
+              <p>No pending registration requests found.</p>
+            )}
+
             <div className="join-request-list">
-              <div className="join-request-card">
-                <div className="join-request-main">
-                  <div className="patient-avatar">L</div>
+              {!loading &&
+                !error &&
+                filteredRequests.map((request) => (
+                  <div
+                    className="join-request-card"
+                    key={request.join_request_id}
+                  >
+                    <div className="join-request-main">
+                      <div className="patient-avatar">
+                        {getInitial(request.name)}
+                      </div>
 
-                  <div>
-                    <h3>Dr. Lina Omar</h3>
-                    <p>Surgery Specialist • lina.omar@example.com</p>
+                      <div>
+                        <h3>{request.name}</h3>
+                        <p>
+                          {request.request_type === "doctor"
+                            ? "Doctor Registration"
+                            : "NGO Registration"}{" "}
+                          • {request.email}
+                        </p>
 
-                    <div className="profile-badges">
-                      <span className="role-pill doctor-role">Doctor</span>
-                      <span className="status pending">Pending</span>
+                        <div className="profile-badges">
+                          <span
+                            className={`role-pill ${
+                              request.request_type === "doctor"
+                                ? "doctor-role"
+                                : "ngo-role"
+                            }`}
+                          >
+                            {request.request_type === "doctor"
+                              ? "Doctor"
+                              : "NGO"}
+                          </span>
+                          <span className="status pending">Pending</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="join-request-details">
+                      <div>
+                        <p>
+                          {request.request_type === "doctor"
+                            ? "License Number"
+                            : "Registration Number"}
+                        </p>
+                        <h4>{request.license_number || "N/A"}</h4>
+                      </div>
+
+                      <div>
+                        <p>
+                          {request.request_type === "doctor"
+                            ? "Specialty"
+                            : "Organization"}
+                        </p>
+                        <h4>
+                          {request.request_type === "doctor"
+                            ? request.specialty || "N/A"
+                            : request.organization_type || "N/A"}
+                        </h4>
+                      </div>
+
+                      <div>
+                        <p>Submitted</p>
+                        <h4>{formatSubmittedDate(request.created_at)}</h4>
+                      </div>
+                    </div>
+
+                    <div className="join-request-actions">
+                      <button className="mini-btn">Approve</button>
+                      <button className="secondary-plan-btn">
+                        Request Docs
+                      </button>
+                      <button className="icon-mini-btn danger-icon-btn">
+                        <span className="material-symbols-outlined">close</span>
+                      </button>
                     </div>
                   </div>
-                </div>
-
-                <div className="join-request-details">
-                  <div>
-                    <p>License Number</p>
-                    <h4>MED-PENDING-221</h4>
-                  </div>
-
-                  <div>
-                    <p>Hospital / Clinic</p>
-                    <h4>Al Amal Medical Center</h4>
-                  </div>
-
-                  <div>
-                    <p>Submitted</p>
-                    <h4>Today, 09:20 AM</h4>
-                  </div>
-                </div>
-
-                <div className="join-request-actions">
-                  <button className="mini-btn">Approve</button>
-                  <button className="secondary-plan-btn">Request Docs</button>
-                  <button className="icon-mini-btn danger-icon-btn">
-                    <span className="material-symbols-outlined">close</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="join-request-card">
-                <div className="join-request-main">
-                  <div className="patient-avatar">C</div>
-
-                  <div>
-                    <h3>Care Bridge NGO</h3>
-                    <p>Medical Aid Organization • contact@carebridge.org</p>
-
-                    <div className="profile-badges">
-                      <span className="role-pill ngo-role">NGO</span>
-                      <span className="status pending">Pending</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="join-request-details">
-                  <div>
-                    <p>Registration Number</p>
-                    <h4>NGO-PENDING-884</h4>
-                  </div>
-
-                  <div>
-                    <p>Support Field</p>
-                    <h4>Medical Supplies</h4>
-                  </div>
-
-                  <div>
-                    <p>Submitted</p>
-                    <h4>Yesterday, 04:50 PM</h4>
-                  </div>
-                </div>
-
-                <div className="join-request-actions">
-                  <button className="mini-btn">Approve</button>
-                  <button className="secondary-plan-btn">Request Docs</button>
-                  <button className="icon-mini-btn danger-icon-btn">
-                    <span className="material-symbols-outlined">close</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="join-request-card needs-docs-card">
-                <div className="join-request-main">
-                  <div className="patient-avatar">N</div>
-
-                  <div>
-                    <h3>North Health Support</h3>
-                    <p>Humanitarian Support NGO • northhealth@example.org</p>
-
-                    <div className="profile-badges">
-                      <span className="role-pill ngo-role">NGO</span>
-                      <span className="status pending">Needs Documents</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="join-request-details">
-                  <div>
-                    <p>Registration Number</p>
-                    <h4>NGO-PENDING-771</h4>
-                  </div>
-
-                  <div>
-                    <p>Support Field</p>
-                    <h4>Transport Support</h4>
-                  </div>
-
-                  <div>
-                    <p>Submitted</p>
-                    <h4>2 days ago</h4>
-                  </div>
-                </div>
-
-                <div className="join-request-actions">
-                  <button className="mini-btn">Review</button>
-                  <button className="secondary-plan-btn">Message</button>
-                  <button className="icon-mini-btn danger-icon-btn">
-                    <span className="material-symbols-outlined">close</span>
-                  </button>
-                </div>
-              </div>
+                ))}
             </div>
           </div>
         </div>
@@ -192,12 +246,12 @@ function AdminJoinRequests() {
             <h2>Verification Progress</h2>
 
             <div className="progress-circle">
-              <span>68%</span>
+              <span>{requests.length}</span>{" "}
             </div>
 
             <p>
-              Most requests are processed quickly. Some applicants still need to
-              upload missing verification documents.
+              Pending registration requests are waiting for admin review and
+              verification.
             </p>
           </div>
 
