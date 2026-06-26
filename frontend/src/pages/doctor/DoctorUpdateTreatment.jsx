@@ -1,50 +1,9 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
-import API from "../../services/api";
-import DoctorTopbar from "../../components/DoctorTopbar";
 
 function DoctorUpdateTreatment() {
-  const [doctor, setDoctor] = useState(null);
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    const fetchDoctorProfile = async () => {
-      try {
-        const res = await API.get("/auth/profile");
-        setDoctor(res.data.user);
-      } catch (err) {
-        setMessage(
-          err.response?.data?.message || "Failed to load treatment page"
-        );
-      }
-    };
-
-    fetchDoctorProfile();
-  }, []);
-
-  if (message) {
-    return (
-      <div style={{ padding: "30px", color: "red", fontWeight: "bold" }}>
-        {message}
-      </div>
-    );
-  }
-
-  if (!doctor) {
-    return <div style={{ padding: "30px" }}>Loading treatment page...</div>;
-  }
-
   return (
     <>
-      <DoctorTopbar
-        title="Update Treatment Plan"
-        subtitle={`Welcome back, Dr. ${
-          doctor.name || "Doctor"
-        }. Create, edit, and manage patient treatment instructions.`}
-        doctor={doctor}
-      />
-
       <section className="update-treatment-layout">
         <div className="content-left">
           <div className="panel">
@@ -79,9 +38,7 @@ function DoctorUpdateTreatment() {
             <div className="panel-header">
               <div>
                 <h2>Treatment Plan Form</h2>
-                <p>
-                  Update medication, wound care, therapy, and doctor notes.
-                </p>
+                <p>Update medication, wound care, therapy, and doctor notes.</p>
               </div>
             </div>
 
@@ -120,7 +77,7 @@ function DoctorUpdateTreatment() {
                 <textarea
                   rows="4"
                   defaultValue="Continue Amoxicillin 500mg after breakfast for 7 days. Pain relief tablet after lunch only when needed. Apply wound cream before sleep daily."
-                ></textarea>
+                />
               </div>
 
               <div className="treatment-field">
@@ -128,7 +85,7 @@ function DoctorUpdateTreatment() {
                 <textarea
                   rows="4"
                   defaultValue="Clean the wound once daily using sterile saline. Keep the wound dry after cleaning. Upload a wound photo every two days for review."
-                ></textarea>
+                />
               </div>
 
               <div className="treatment-field">
@@ -136,7 +93,7 @@ function DoctorUpdateTreatment() {
                 <textarea
                   rows="4"
                   defaultValue="Begin light mobility exercises after the next review if pain remains low and wound condition stays stable."
-                ></textarea>
+                />
               </div>
 
               <div className="treatment-actions">
@@ -198,6 +155,7 @@ function DoctorUpdateTreatment() {
             <div className="doctor-update-list">
               <div className="doctor-update-item compact-update">
                 <span className="material-symbols-outlined">edit_note</span>
+
                 <div>
                   <h3>Medication phase extended</h3>
                   <small>Today • 11:30 AM</small>
@@ -206,6 +164,7 @@ function DoctorUpdateTreatment() {
 
               <div className="doctor-update-item compact-update">
                 <span className="material-symbols-outlined">photo_camera</span>
+
                 <div>
                   <h3>Wound photo reviewed</h3>
                   <small>Yesterday • 08:15 PM</small>

@@ -1,48 +1,9 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
-import API from "../../services/api";
-import DoctorTopbar from "../../components/DoctorTopbar";
 
 function DoctorChat() {
-  const [doctor, setDoctor] = useState(null);
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    const fetchDoctorProfile = async () => {
-      try {
-        const res = await API.get("/auth/profile");
-        setDoctor(res.data.user);
-      } catch (err) {
-        setMessage(err.response?.data?.message || "Failed to load chat page");
-      }
-    };
-
-    fetchDoctorProfile();
-  }, []);
-
-  if (message) {
-    return (
-      <div style={{ padding: "30px", color: "red", fontWeight: "bold" }}>
-        {message}
-      </div>
-    );
-  }
-
-  if (!doctor) {
-    return <div style={{ padding: "30px" }}>Loading chat page...</div>;
-  }
-
   return (
     <>
-      <DoctorTopbar
-        title="Patient Chat"
-        subtitle={`Welcome back, Dr. ${
-          doctor.name || "Doctor"
-        }. Communicate with patients, review updates, and respond securely.`}
-        doctor={doctor}
-      />
-
       <section className="chat-layout">
         <div className="panel chat-contacts-panel">
           <div className="panel-header">

@@ -4853,3 +4853,39 @@ a {
   background: #991b1b;
   color: white !important;
 }
+
+.sidebar-logout-btn {
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: inherit;
+  text-align: left;
+  padding: 12px 16px;
+  border-radius: 12px;
+  transition: 0.2s ease;
+}
+
+.sidebar-logout-btn:hover {
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
+}
+
+.sidebar-logout-btn:hover span {
+  color: #b91c1c;
+}
+
+.admin-avatar {
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.5px;
+}
+
+.emergency-alerts-head,
+.emergency-alerts-row {
+  grid-template-columns: 0.8fr 1fr 1fr 1.2fr 1.4fr 1fr 1fr;
+}

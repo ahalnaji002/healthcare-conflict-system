@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
-import PatientTopbar from "../../components/PatientTopbar";
 
 function PatientDashboard() {
   const [user, setUser] = useState(null);
@@ -42,12 +41,6 @@ function PatientDashboard() {
 
   return (
     <>
-      <PatientTopbar
-        title="Patient Dashboard"
-        subtitle={`Welcome back, ${user.name || "Patient"}. Here is your medical follow-up summary.`}
-        user={user}
-      />
-
       <section className="stats-grid">
         <div className="stat-box blue">
           <div>
@@ -142,12 +135,14 @@ function PatientDashboard() {
                 <div className="medicine-icon blue-icon">
                   <span className="material-symbols-outlined">healing</span>
                 </div>
+
                 <div>
                   <h3>Primary Medical Condition</h3>
                   <p>
                     {user.medical_condition || "No medical condition recorded."}
                   </p>
                 </div>
+
                 <span className="status taken">Active</span>
               </div>
 
@@ -157,12 +152,14 @@ function PatientDashboard() {
                     monitor_heart
                   </span>
                 </div>
+
                 <div>
                   <h3>Chronic Diseases</h3>
                   <p>
                     {user.chronic_diseases || "No chronic diseases recorded."}
                   </p>
                 </div>
+
                 <span className="status pending">Info</span>
               </div>
 
@@ -170,10 +167,12 @@ function PatientDashboard() {
                 <div className="medicine-icon green-icon">
                   <span className="material-symbols-outlined">contacts</span>
                 </div>
+
                 <div>
                   <h3>Emergency Contact</h3>
                   <p>{user.emergency_contact || "Not provided"}</p>
                 </div>
+
                 <span className="status pending">Contact</span>
               </div>
             </div>
@@ -185,6 +184,7 @@ function PatientDashboard() {
                 <h2>Upcoming Appointments</h2>
                 <p>Doctor visits and follow-up sessions.</p>
               </div>
+
               <button>Schedule</button>
             </div>
 
@@ -223,6 +223,7 @@ function PatientDashboard() {
 
             <div className="request-item">
               <span className="request-dot normal"></span>
+
               <div>
                 <h3>No active requests</h3>
                 <p>Your assistance requests will appear here.</p>
@@ -240,8 +241,11 @@ function PatientDashboard() {
 
               <div>
                 <h3>
-                  {doctor ? `Dr. ${doctor.full_name}` : "Not assigned yet"}
+                  {doctor
+                    ? `Dr. ${doctor.full_name || doctor.name || "Doctor"}`
+                    : "Not assigned yet"}
                 </h3>
+
                 <p>
                   {doctor
                     ? doctor.specialty || "Specialty not provided"
