@@ -60,6 +60,11 @@ function DoctorLayout() {
       title: "Doctor Profile",
       subtitle: "Manage professional information and account settings.",
     };
+  } else if (path === "/doctor-critical-alerts") {
+    pageInfo = {
+      title: "Critical Alerts",
+      subtitle: "Review active emergency alerts submitted by patients.",
+    };
   }
 
   return (

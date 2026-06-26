@@ -4,11 +4,11 @@ import { Routes, Route } from "react-router-dom";
 import Landing from "./pages/public/Landing";
 import Login from "./pages/public/Login";
 import PatientRegister from "./pages/public/PatientRegister";
+import VerificationCode from "./pages/public/VerificationCode";
 import JoinRequest from "./pages/public/JoinRequest";
 import ForgotPassword from "./pages/public/ForgotPassword";
 import NotFound from "./pages/public/NotFound";
 import EmergencyAlert from "./pages/public/EmergencyAlert";
-import VerificationCode from "./pages/public/VerificationCode";
 
 // Patient Pages
 import PatientLayout from "./layouts/PatientLayout";
@@ -29,6 +29,7 @@ import DoctorPatientRecord from "./pages/doctor/DoctorPatientRecord";
 import DoctorUpdateTreatment from "./pages/doctor/DoctorUpdateTreatment";
 import DoctorChat from "./pages/doctor/DoctorChat";
 import DoctorProfile from "./pages/doctor/DoctorProfile";
+import DoctorCriticalAlerts from "./pages/doctor/DoctorCriticalAlerts";
 
 // NGO Pages
 import NgoLayout from "./layouts/NgoLayout";
@@ -49,6 +50,7 @@ import AdminLogs from "./pages/admin/AdminLogs";
 import AdminRecords from "./pages/admin/AdminRecords";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminEmergencyAlerts from "./pages/admin/AdminEmergencyAlerts";
 
 function App() {
   return (
@@ -75,6 +77,10 @@ function App() {
       <Route element={<DoctorLayout />}>
         <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
         <Route path="/doctor-patients" element={<DoctorPatients />} />
+        <Route
+          path="/doctor-critical-alerts"
+          element={<DoctorCriticalAlerts />}
+        />
         <Route
           path="/doctor-patient-record"
           element={<DoctorPatientRecord />}
@@ -109,6 +115,10 @@ function App() {
         <Route path="/admin-records" element={<AdminRecords />} />
         <Route path="/admin-reports" element={<AdminReports />} />
         <Route path="/admin-settings" element={<AdminSettings />} />
+        <Route
+          path="/admin-emergency-alerts"
+          element={<AdminEmergencyAlerts />}
+        />
       </Route>
 
       <Route path="*" element={<NotFound />} />

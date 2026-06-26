@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
 import "../../styles/emergencyAlert.css";
 import "../../styles/auth.css";
@@ -15,6 +15,20 @@ function EmergencyAlert() {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await API.get("/auth/profile");
+        setUser(res.data.user);
+      } catch {
+        setUser(null);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleShareLocation = () => {
     setMessage("");
@@ -43,6 +57,7 @@ function EmergencyAlert() {
     );
   };
 
+  console.log("Current user:", user);
   const handleSendAlert = async () => {
     setMessage("");
 
@@ -60,6 +75,7 @@ function EmergencyAlert() {
       setIsSending(true);
 
       const payload = {
+        patient_id: user?.patient_id || null,
         mobile_number: mobileNumber,
         description,
       };
@@ -78,7 +94,13 @@ function EmergencyAlert() {
       setMessage("Emergency alert sent successfully.");
 
       setTimeout(() => {
-        navigate("/patient-dashboard");
+        if (user?.role === "patient") {
+          navigate("/patient-dashboard");
+        } else if (user?.role === "doctor") {
+          navigate("/doctor-dashboard");
+        } else {
+          navigate("/");
+        }
       }, 1200);
     } catch (err) {
       setMessage(
@@ -227,9 +249,13 @@ function EmergencyAlert() {
               </div>
 
               <div className="emergency-buttons">
-                <Link to="/patient-dashboard" className="cancel-btn">
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => navigate(-1)}
+                >
                   Cancel
-                </Link>
+                </button>
 
                 <button
                   type="button"

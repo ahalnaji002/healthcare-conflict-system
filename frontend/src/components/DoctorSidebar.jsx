@@ -1,9 +1,15 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AppLogo from "./AppLogo";
 
 function DoctorSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const path = location.pathname;
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
 
   return (
     <aside className="sidebar">
@@ -49,10 +55,14 @@ function DoctorSidebar() {
         </Link>
       </nav>
       <div className="sidebar-footer">
-        <Link to="/login">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="sidebar-logout-btn"
+        >
           <span className="material-symbols-outlined">logout</span>
           Logout
-        </Link>
+        </button>
       </div>
     </aside>
   );
