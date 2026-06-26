@@ -33,3 +33,6 @@ app.use("/api/emergency", emergencyRoutes);
 
 const adminRoutes = require("./routes/adminRoutes");
 app.use("/api/admin", adminRoutes);
+
+const medicalRoutes = require("./routes/medicalRoutes");
+app.use("/api/medical", medicalRoutes);
