@@ -1,10 +1,114 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "../../styles/dashboard.css";
 
 function ForgotPassword() {
-  const handleSubmit = (e) => {
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [step, setStep] = useState("email");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSendCode = async (e) => {
     e.preventDefault();
-    alert("Password reset link sent. This is a UI prototype.");
+    setMessage("");
+    setError("");
+
+    if (!email.trim()) {
+      setError("Email is required");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await fetch(
+        "http://localhost:5000/api/auth/forgot-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Failed to send reset code");
+        return;
+      }
+
+      setMessage(data.message || "Reset code sent to your email.");
+      setStep("reset");
+    } catch (err) {
+      console.error("FORGOT PASSWORD ERROR:", err);
+      setError("Server connection error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setError("");
+
+    if (!code.trim() || !newPassword || !confirmPassword) {
+      setError("Reset code, new password, and confirm password are required");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await fetch("http://localhost:5000/api/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          code,
+          newPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Failed to reset password");
+        return;
+      }
+
+      setMessage("Password changed successfully. Redirecting to login...");
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+    } catch (err) {
+      console.error("RESET PASSWORD ERROR:", err);
+      setError("Server connection error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -40,24 +144,108 @@ function ForgotPassword() {
           <h1>Reset Password</h1>
 
           <p className="forgot-subtitle">
-            Enter your registered email address and we will send you a secure
-            password reset link.
+            {step === "email"
+              ? "Enter your registered email address and we will send you a secure reset code."
+              : "Enter the reset code sent to your email and choose a new password."}
           </p>
 
-          <form onSubmit={handleSubmit} className="forgot-form">
-            <div className="form-group">
-              <label>Email Address</label>
+          {message && <p className="success-message">{message}</p>}
+          {error && <p className="error-message">{error}</p>}
 
-              <div className="input-wrapper">
-                <span className="material-symbols-outlined">mail</span>
-                <input type="email" placeholder="Enter your email address" />
+          {step === "email" ? (
+            <form onSubmit={handleSendCode} className="forgot-form">
+              <div className="form-group">
+                <label>Email Address</label>
+                <div className="input-wrapper">
+                  <span className="material-symbols-outlined">mail</span>
+                  <input
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
 
-            <button type="submit" className="auth-primary-btn">
-              Send Reset Link
-            </button>
-          </form>
+              <button
+                type="submit"
+                className="auth-primary-btn"
+                disabled={loading}
+              >
+                {loading ? "Sending..." : "Send Reset Code"}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleResetPassword} className="forgot-form">
+              <div className="form-group">
+                <label>Reset Code</label>
+                <div className="input-wrapper">
+                  <span className="material-symbols-outlined">pin</span>
+                  <input
+                    type="text"
+                    placeholder="Enter reset code"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>New Password</label>
+                <div className="input-wrapper">
+                  <span className="material-symbols-outlined">lock</span>
+                  <input
+                    type="password"
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Confirm Password</label>
+                <div className="input-wrapper">
+                  <span className="material-symbols-outlined">lock</span>
+                  <input
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="auth-primary-btn"
+                disabled={loading}
+              >
+                {loading ? "Resetting..." : "Reset Password"}
+              </button>
+
+              <button
+                type="button"
+                className="auth-primary-btn"
+                style={{
+                  background: "#fff",
+                  color: "#00478d",
+                  border: "2px solid #00478d",
+                  marginTop: "10px",
+                }}
+                onClick={() => {
+                  setStep("email");
+                  setMessage("");
+                  setError("");
+                  setCode("");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                }}
+              >
+                Change Email
+              </button>
+            </form>
+          )}
 
           <div className="forgot-bottom">
             <Link to="/login">
