@@ -10,6 +10,7 @@ const {
   rejectUser,
   getAllUsers,
   updateUserStatus,
+  getNGOs,
 } = require("../controllers/adminController");
 
 // GET /api/admin/pending-registrations
@@ -29,5 +30,8 @@ router.get("/users", verifyToken, getAllUsers);
 
 // PATCH /api/admin/users/:id/status
 router.patch("/users/:id/status", verifyToken, updateUserStatus);
+
+// GET /api/admin/ngos
+router.get("/ngos", verifyToken, getNGOs);
 
 module.exports = router;

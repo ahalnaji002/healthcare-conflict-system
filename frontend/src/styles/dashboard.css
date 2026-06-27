@@ -5160,3 +5160,8 @@ a {
   background: #dcfce7;
   color: #16a34a;
 }
+
+.modal-select {
+  width: 100%;
+  margin: 18px 0;
+}

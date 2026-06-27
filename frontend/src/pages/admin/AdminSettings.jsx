@@ -198,7 +198,7 @@ function AdminSettings() {
                 <span className="material-symbols-outlined">lock</span>
                 <div>
                   <h3>Password Policy</h3>
-                  <p>Minimum 8 characters with secure requirements.</p>
+                  <p>Minimum 6 characters with secure requirements.</p>
                 </div>
               </div>
 

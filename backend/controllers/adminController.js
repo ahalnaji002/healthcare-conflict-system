@@ -411,6 +411,28 @@ const updateUserStatus = (req, res) => {
   });
 };
 
+// ================= GET ALL NGOS =============
+const getNGOs = (req, res) => {
+  const sql = `
+    SELECT
+      ngo_id,
+      organization_name
+    FROM ngos
+    ORDER BY organization_name
+  `;
+
+  db.query(sql, (err, rows) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({
+        message: "Server error",
+      });
+    }
+
+    res.json(rows);
+  });
+};
+
 module.exports = {
   getPendingRegistrations,
   getAdminDashboard,
@@ -418,4 +440,5 @@ module.exports = {
   rejectUser,
   getAllUsers,
   updateUserStatus,
+  getNGOs,
 };
