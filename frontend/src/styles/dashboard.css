@@ -5155,3 +5155,8 @@ a {
     box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
   }
 }
+
+.activate-icon-btn {
+  background: #dcfce7;
+  color: #16a34a;
+}

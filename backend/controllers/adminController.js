@@ -350,9 +350,72 @@ const rejectUser = (req, res) => {
   });
 };
 
+// ================= GET ALL USERS =================
+const getAllUsers = (req, res) => {
+  const sql = `
+    SELECT
+      id,
+      full_name,
+      email,
+      phone,
+      role,
+      status,
+      is_verified,
+      created_at
+    FROM users
+    ORDER BY created_at DESC
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("GET ALL USERS ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    return res.status(200).json({
+      message: "Users fetched successfully",
+      count: results.length,
+      users: results,
+    });
+  });
+};
+
+// ================= UPDATE USER STATUS =============
+const updateUserStatus = (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!["active", "inactive"].includes(status)) {
+    return res.status(400).json({ message: "Invalid status" });
+  }
+
+  const sql = `
+    UPDATE users
+    SET status = ?
+    WHERE id = ?
+  `;
+
+  db.query(sql, [status, id], (err, result) => {
+    if (err) {
+      console.error("UPDATE USER STATUS ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      message: `User ${status === "active" ? "activated" : "suspended"} successfully`,
+    });
+  });
+};
+
 module.exports = {
   getPendingRegistrations,
   getAdminDashboard,
   approveUser,
   rejectUser,
+  getAllUsers,
+  updateUserStatus,
 };
