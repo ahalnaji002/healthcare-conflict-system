@@ -224,29 +224,26 @@ const approveUser = (req, res) => {
     WHERE join_request_id = ?
   `;
 
-          db.query(
-            updateRequestSql,
-            [id],
-            (updateErr, updateResult) => {
-              if (updateErr) {
-                console.error("UPDATE JOIN REQUEST ERROR:", updateErr);
-                return res
-                  .status(500)
-                  .json({ message: "Failed to update join request" });
-              }
+          db.query(updateRequestSql, [id], (updateErr, updateResult) => {
+            if (updateErr) {
+              console.error("UPDATE JOIN REQUEST ERROR:", updateErr);
+              return res
+                .status(500)
+                .json({ message: "Failed to update join request" });
+            }
 
-              console.log("JOIN REQUEST UPDATE RESULT:", updateResult);
+            console.log("JOIN REQUEST UPDATE RESULT:", updateResult);
 
-              if (updateResult.affectedRows === 0) {
-                return res.status(500).json({
-                  message: "User created, but join request was not updated",
-                });
-              }
+            if (updateResult.affectedRows === 0) {
+              return res.status(500).json({
+                message: "User created, but join request was not updated",
+              });
+            }
 
-              sendEmail(
-                request.email,
-                "Your Account Has Been Approved - War Injuries Care",
-                `
+            sendEmail(
+              request.email,
+              "Your Account Has Been Approved - War Injuries Care",
+              `
       <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto; padding: 20px;">
         <h2 style="color:#00478d;">War Injuries Care</h2>
         <p>Hello ${request.name},</p>
@@ -259,19 +256,96 @@ const approveUser = (req, res) => {
         <p>Welcome to War Injuries Care.</p>
       </div>
       `,
-              );
+            );
 
-              return res.status(200).json({
-                message:
-                  "User approved successfully and notification email sent",
-                user_id: userId,
-                role: request.request_type,
-              });
-            },
-          );
+            return res.status(200).json({
+              message: "User approved successfully and notification email sent",
+              user_id: userId,
+              role: request.request_type,
+            });
+          });
         }
       },
     );
+  });
+};
+
+// ================= REJECT USER =================
+const rejectUser = (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  if (!reason || !reason.trim()) {
+    return res.status(400).json({ message: "Rejection reason is required" });
+  }
+
+  const findRequestSql = `
+    SELECT *
+    FROM join_requests
+    WHERE join_request_id = ? AND status = 'pending'
+    LIMIT 1
+  `;
+
+  db.query(findRequestSql, [id], (err, requests) => {
+    if (err) {
+      console.error("FIND JOIN REQUEST ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (requests.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Pending join request not found" });
+    }
+
+    const request = requests[0];
+
+    const updateSql = `
+      UPDATE join_requests
+      SET status = 'rejected',
+          rejection_reason = ?,
+          reviewed_by = NULL,
+          reviewed_at = NOW()
+      WHERE join_request_id = ?
+    `;
+
+    db.query(updateSql, [reason.trim(), id], (updateErr) => {
+      if (updateErr) {
+        console.error("REJECT JOIN REQUEST ERROR:", updateErr);
+        return res.status(500).json({ message: "Failed to reject request" });
+      }
+
+      sendEmail(
+        request.email,
+        "Registration Request Update - War Injuries Care",
+        `
+        <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto; padding: 20px;">
+          <h2 style="color:#00478d;">War Injuries Care</h2>
+          <p>Hello ${request.name},</p>
+          <p>After carefully reviewing your registration request, we are unable to approve your application at this time.</p>
+          <div style="background:#fff1f2; border-left:5px solid #dc2626; padding:16px; border-radius:10px; margin:20px 0;">
+            <strong>Reason:</strong><br/>
+            ${reason.trim()}
+          </div>
+          <p>Once the issue has been resolved, you are welcome to submit a new registration request for review.</p>
+          <hr style="margin:30px 0;border:none;border-top:1px solid #eee;">
+
+          <p style="font-size:13px;color:#777;">
+          If you believe this decision was made in error or you need further clarification,
+          please contact the War Injuries Care support team.
+          </p>
+
+          <p style="font-size:13px;color:#777;">
+          Thank you for your understanding.
+          </p>
+        </div>
+        `,
+      );
+
+      return res.status(200).json({
+        message: "Request rejected successfully and notification email sent",
+      });
+    });
   });
 };
 
@@ -279,4 +353,5 @@ module.exports = {
   getPendingRegistrations,
   getAdminDashboard,
   approveUser,
+  rejectUser,
 };

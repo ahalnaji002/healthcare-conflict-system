@@ -5083,3 +5083,37 @@ a {
   gap: 12px;
   justify-content: flex-end;
 }
+
+.custom-modal-icon.danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.reject-reason-box {
+  width: 100%;
+  margin: 18px 0;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+  resize: none;
+  outline: none;
+  font-size: 14px;
+}
+
+.reject-reason-box:focus {
+  border-color: #dc2626;
+}
+
+.danger-action-btn {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 22px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.danger-action-btn:hover {
+  background: #b91c1c;
+}

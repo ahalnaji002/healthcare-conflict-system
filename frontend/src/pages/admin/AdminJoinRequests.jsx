@@ -11,6 +11,10 @@ function AdminJoinRequests() {
   const [approveModal, setApproveModal] = useState(null);
   const [approving, setApproving] = useState(false);
 
+  const [rejectModal, setRejectModal] = useState(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [rejecting, setRejecting] = useState(false);
+
   const token = localStorage.getItem("token");
 
   const fetchPendingRegistrations = async () => {
@@ -89,6 +93,56 @@ function AdminJoinRequests() {
       setApproveModal(null);
     } finally {
       setApproving(false);
+    }
+  };
+
+  const rejectRequest = async () => {
+    if (!rejectModal || rejecting) return;
+
+    if (!rejectReason.trim()) {
+      setError("Please enter a rejection reason.");
+      return;
+    }
+
+    try {
+      setRejecting(true);
+      setError("");
+      setSuccess("");
+
+      const id = rejectModal.join_request_id;
+
+      const res = await fetch(
+        `http://localhost:5000/api/admin/reject-user/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            reason: rejectReason,
+          }),
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Reject failed");
+        return;
+      }
+
+      setSuccess("Registration rejected successfully.");
+
+      setRequests((prev) => prev.filter((r) => r.join_request_id !== id));
+
+      setRejectModal(null);
+      setRejectReason("");
+    } catch (err) {
+      console.error(err);
+      setError("Server connection error");
+    } finally {
+      setRejecting(false);
     }
   };
 
@@ -292,6 +346,12 @@ function AdminJoinRequests() {
                       <button
                         type="button"
                         className="icon-mini-btn danger-icon-btn"
+                        onClick={() => {
+                          setError("");
+                          setSuccess("");
+                          setRejectReason("");
+                          setRejectModal(request);
+                        }}
                       >
                         <span className="material-symbols-outlined">close</span>
                       </button>
@@ -412,6 +472,52 @@ function AdminJoinRequests() {
                 disabled={approving}
               >
                 {approving ? "Approving..." : "Approve"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {rejectModal && (
+        <div className="custom-modal-overlay">
+          <div className="custom-modal">
+            <div className="custom-modal-icon danger">
+              <span className="material-symbols-outlined">cancel</span>
+            </div>
+
+            <h2>Reject Registration</h2>
+
+            <p>
+              Please provide a reason for rejecting
+              <br />
+              <strong>{rejectModal.name}</strong>
+            </p>
+
+            <textarea
+              className="reject-reason-box"
+              rows="5"
+              placeholder="Write rejection reason..."
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+            />
+
+            <div className="custom-modal-actions">
+              <button
+                className="secondary-plan-btn"
+                onClick={() => {
+                  setRejectModal(null);
+                  setRejectReason("");
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="danger-action-btn"
+                onClick={rejectRequest}
+                disabled={rejecting}
+              >
+                {rejecting ? "Rejecting..." : "Reject"}
               </button>
             </div>
           </div>
