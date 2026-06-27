@@ -68,6 +68,7 @@ const getAdminDashboard = (req, res) => {
       (SELECT COUNT(*) FROM users WHERE role = 'ngo') AS total_ngos,
       (SELECT COUNT(*) FROM users WHERE role = 'admin') AS total_admins,
       (SELECT COUNT(*) FROM join_requests WHERE status = 'pending') AS pending_join_requests,
+      (SELECT COUNT(*) FROM assistance_requests WHERE status = 'pending') AS pending_assistance_requests,
       (SELECT COUNT(*) FROM emergency_alerts WHERE status IN ('new', 'in_progress')) AS active_cases,
       (SELECT COUNT(*) FROM emergency_alerts WHERE status = 'new') AS security_alerts
   `;

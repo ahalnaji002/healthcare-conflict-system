@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AppLogo from "./AppLogo";
 
@@ -5,6 +6,37 @@ function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const path = location.pathname;
+
+  const [pendingCount, setPendingCount] = useState(0);
+  const [assistanceCount, setAssistanceCount] = useState(0);
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/admin/dashboard", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          setPendingCount(data.stats?.pending_join_requests || 0);
+          setAssistanceCount(data.stats?.pending_assistance_requests || 0);
+        }
+      } catch (err) {
+        console.error("FETCH PENDING COUNT ERROR:", err);
+      }
+    };
+
+    fetchPendingCount();
+
+    const interval = setInterval(fetchPendingCount, 10000);
+
+    return () => clearInterval(interval);
+  }, [token]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -36,18 +68,32 @@ function AdminSidebar() {
 
         <Link
           to="/admin-join-requests"
-          className={path === "/admin-join-requests" ? "active" : ""}
+          className={
+            path === "/admin-join-requests"
+              ? "active sidebar-link-badge"
+              : "sidebar-link-badge"
+          }
         >
           <span className="material-symbols-outlined">how_to_reg</span>
           Join Requests
+          {pendingCount > 0 && (
+            <span className="sidebar-badge">{pendingCount}</span>
+          )}
         </Link>
 
         <Link
           to="/admin-assistance"
-          className={path === "/admin-assistance" ? "active" : ""}
+          className={
+            path === "/admin-assistance"
+              ? "active sidebar-link-badge"
+              : "sidebar-link-badge"
+          }
         >
           <span className="material-symbols-outlined">volunteer_activism</span>
           Assistance
+          {assistanceCount > 0 && (
+            <span className="sidebar-badge">{assistanceCount}</span>
+          )}
         </Link>
 
         <Link
