@@ -1,13 +1,138 @@
+import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import "../../styles/dashboard.css";
 
 function AdminAssistance() {
+  const token = localStorage.getItem("token");
+
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [search, setSearch] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("All Priorities");
+  const [statusFilter, setStatusFilter] = useState("All Status");
+
+  const [ngos, setNgos] = useState([]);
+  const [assignModal, setAssignModal] = useState(null);
+  const [selectedNgoId, setSelectedNgoId] = useState("");
+  const [assigning, setAssigning] = useState(false);
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        setLoading(true);
+
+        const { data } = await axios.get(
+          "http://localhost:5000/api/requests/admin/all",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        setRequests(data || []);
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load assistance requests.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchNGOs = async () => {
+      try {
+        const { data } = await axios.get(
+          "http://localhost:5000/api/admin/ngos",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        setNgos(data || []);
+      } catch (err) {
+        console.error("FETCH NGOS ERROR:", err);
+      }
+    };
+
+    fetchNGOs();
+    fetchRequests();
+  }, [token]);
+
+  const filteredRequests = useMemo(() => {
+    return requests.filter((request) => {
+      const searchValue = search.toLowerCase();
+
+      const matchesSearch =
+        request.full_name?.toLowerCase().includes(searchValue) ||
+        request.email?.toLowerCase().includes(searchValue) ||
+        request.location?.toLowerCase().includes(searchValue) ||
+        request.request_type?.toLowerCase().includes(searchValue);
+
+      const matchesPriority =
+        priorityFilter === "All Priorities" ||
+        request.urgency_level === priorityFilter.toLowerCase();
+
+      const matchesStatus =
+        statusFilter === "All Status" ||
+        request.status === statusFilter.toLowerCase().replace(" ", "_");
+
+      return matchesSearch && matchesPriority && matchesStatus;
+    });
+  }, [requests, search, priorityFilter, statusFilter]);
+
+  const assignNGO = async () => {
+    if (!assignModal || !selectedNgoId) return;
+
+    try {
+      setAssigning(true);
+
+      await axios.put(
+        `http://localhost:5000/api/requests/admin/assign/${assignModal.assistance_request_id}`,
+        { ngo_id: selectedNgoId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setRequests((prev) =>
+        prev.map((request) =>
+          request.assistance_request_id === assignModal.assistance_request_id
+            ? {
+                ...request,
+                ngo_id: selectedNgoId,
+                status: "in_progress",
+                organization_name:
+                  ngos.find(
+                    (ngo) => String(ngo.ngo_id) === String(selectedNgoId),
+                  )?.organization_name || "Assigned",
+              }
+            : request,
+        ),
+      );
+
+      setAssignModal(null);
+      setSelectedNgoId("");
+    } catch (err) {
+      console.error("ASSIGN NGO ERROR:", err);
+      alert("Failed to assign NGO.");
+    } finally {
+      setAssigning(false);
+    }
+  };
+
   return (
     <>
       <section className="stats-grid">
         <div className="stat-box blue">
           <div>
             <p>Total Requests</p>
-            <h2>386</h2>
+            <h2>{requests.length}</h2>
           </div>
           <span className="material-symbols-outlined">request_page</span>
         </div>
@@ -15,7 +140,9 @@ function AdminAssistance() {
         <div className="stat-box red">
           <div>
             <p>Critical</p>
-            <h2>31</h2>
+            <h2>
+              {requests.filter((r) => r.urgency_level === "critical").length}
+            </h2>
           </div>
           <span className="material-symbols-outlined">priority_high</span>
         </div>
@@ -23,7 +150,7 @@ function AdminAssistance() {
         <div className="stat-box orange">
           <div>
             <p>Under Review</p>
-            <h2>74</h2>
+            <h2>{requests.filter((r) => r.status === "pending").length}</h2>
           </div>
           <span className="material-symbols-outlined">hourglass_top</span>
         </div>
@@ -31,7 +158,7 @@ function AdminAssistance() {
         <div className="stat-box green">
           <div>
             <p>Completed</p>
-            <h2>219</h2>
+            <h2>{requests.filter((r) => r.status === "completed").length}</h2>
           </div>
           <span className="material-symbols-outlined">task_alt</span>
         </div>
@@ -55,22 +182,32 @@ function AdminAssistance() {
                   <input
                     type="text"
                     placeholder="Search patient, NGO, or location..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
                   />
                 </div>
 
-                <select className="filter-select">
+                <select
+                  className="filter-select"
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value)}
+                >
                   <option>All Priorities</option>
                   <option>Critical</option>
                   <option>Medium</option>
                   <option>Low</option>
                 </select>
 
-                <select className="filter-select">
+                <select
+                  className="filter-select"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
                   <option>All Status</option>
                   <option>Pending</option>
-                  <option>Under Review</option>
-                  <option>Approved</option>
+                  <option>In Progress</option>
                   <option>Completed</option>
+                  <option>Rejected</option>
                 </select>
               </div>
             </div>
@@ -85,101 +222,75 @@ function AdminAssistance() {
                 <span>Action</span>
               </div>
 
-              <div className="assistance-admin-row critical-row">
-                <div className="patient-cell">
-                  <div className="patient-avatar">A</div>
-                  <div>
-                    <h3>Ahmed Hashem</h3>
-                    <p>Gaza • PT-2026-001</p>
-                  </div>
-                </div>
+              {loading && <p>Loading assistance requests...</p>}
 
-                <span>Medical Supplies</span>
-                <span>Hope Relief NGO</span>
-                <span className="priority-badge critical">Critical</span>
-                <span className="status pending">Under Review</span>
+              {error && <p className="error-message">{error}</p>}
 
-                <div className="row-actions">
-                  <button className="mini-btn">Monitor</button>
-                  <button className="icon-mini-btn">
-                    <span className="material-symbols-outlined">
-                      visibility
+              {!loading && filteredRequests.length === 0 && (
+                <p>No assistance requests found.</p>
+              )}
+
+              {!loading &&
+                filteredRequests.map((request) => (
+                  <div
+                    className={`assistance-admin-row ${
+                      request.urgency_level === "critical" ? "critical-row" : ""
+                    }`}
+                    key={request.assistance_request_id}
+                  >
+                    <div className="patient-cell">
+                      <div className="patient-avatar">
+                        {request.full_name?.charAt(0).toUpperCase() || "?"}
+                      </div>
+
+                      <div>
+                        <h3>{request.full_name || "Unknown Patient"}</h3>
+                        <p>
+                          {request.location || "No location"} • PT-
+                          {request.patient_id}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span>{request.request_type}</span>
+
+                    <span>{request.organization_name || "Not Assigned"}</span>
+
+                    <span className={`priority-badge ${request.urgency_level}`}>
+                      {request.urgency_level}
                     </span>
-                  </button>
-                </div>
-              </div>
 
-              <div className="assistance-admin-row">
-                <div className="patient-cell">
-                  <div className="patient-avatar">M</div>
-                  <div>
-                    <h3>Mohammed Ali</h3>
-                    <p>Rafah • PT-2026-014</p>
-                  </div>
-                </div>
-
-                <span>Transportation</span>
-                <span>Care Bridge NGO</span>
-                <span className="priority-badge medium">Medium</span>
-                <span className="status pending">Pending</span>
-
-                <div className="row-actions">
-                  <button className="mini-btn">Assign</button>
-                  <button className="icon-mini-btn">
-                    <span className="material-symbols-outlined">
-                      visibility
+                    <span
+                      className={
+                        request.status === "completed"
+                          ? "status taken"
+                          : "status pending"
+                      }
+                    >
+                      {request.status?.replace("_", " ")}
                     </span>
-                  </button>
-                </div>
-              </div>
 
-              <div className="assistance-admin-row">
-                <div className="patient-cell">
-                  <div className="patient-avatar">S</div>
-                  <div>
-                    <h3>Sara Nabil</h3>
-                    <p>Khan Younis • PT-2026-022</p>
+                    <div className="row-actions">
+                      <button
+                        className="mini-btn"
+                        onClick={() => {
+                          if (!request.ngo_id) {
+                            setAssignModal(request);
+                            setSelectedNgoId("");
+                          }
+                        }}
+                      >
+                        {request.ngo_id ? "Monitor" : "Assign NGO"}
+                      </button>
+
+                      <button className="icon-mini-btn">
+                        <span className="material-symbols-outlined">
+                          visibility
+                        </span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-
-                <span>Financial Aid</span>
-                <span>Hope Relief NGO</span>
-                <span className="priority-badge low">Low</span>
-                <span className="status taken">Completed</span>
-
-                <div className="row-actions">
-                  <button className="mini-btn">Details</button>
-                  <button className="icon-mini-btn">
-                    <span className="material-symbols-outlined">
-                      visibility
-                    </span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="assistance-admin-row critical-row">
-                <div className="patient-cell">
-                  <div className="patient-avatar">R</div>
-                  <div>
-                    <h3>Rami Saleh</h3>
-                    <p>North Gaza • PT-2026-031</p>
-                  </div>
-                </div>
-
-                <span>Mobility Support</span>
-                <span>Not Assigned</span>
-                <span className="priority-badge critical">Critical</span>
-                <span className="status pending">Needs NGO</span>
-
-                <div className="row-actions">
-                  <button className="mini-btn">Assign NGO</button>
-                  <button className="icon-mini-btn">
-                    <span className="material-symbols-outlined">
-                      visibility
-                    </span>
-                  </button>
-                </div>
-              </div>
+                ))}
             </div>
           </div>
 
@@ -311,6 +422,60 @@ function AdminAssistance() {
           </div>
         </div>
       </section>
+
+      {assignModal && (
+        <div className="custom-modal-overlay">
+          <div className="custom-modal">
+            <div className="custom-modal-icon success">
+              <span className="material-symbols-outlined">assignment_ind</span>
+            </div>
+
+            <h2>Assign NGO</h2>
+
+            <p>
+              Assign an NGO to handle request for{" "}
+              <strong>{assignModal.full_name}</strong>
+            </p>
+
+            <select
+              className="filter-select modal-select"
+              value={selectedNgoId}
+              onChange={(e) => setSelectedNgoId(e.target.value)}
+            >
+              <option value="">Select NGO</option>
+
+              {ngos.map((ngo) => (
+                <option key={ngo.ngo_id} value={ngo.ngo_id}>
+                  {ngo.organization_name}
+                </option>
+              ))}
+            </select>
+
+            <div className="custom-modal-actions">
+              <button
+                type="button"
+                className="secondary-plan-btn"
+                onClick={() => {
+                  setAssignModal(null);
+                  setSelectedNgoId("");
+                }}
+                disabled={assigning}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="mini-btn"
+                onClick={assignNGO}
+                disabled={assigning || !selectedNgoId}
+              >
+                {assigning ? "Assigning..." : "Assign"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

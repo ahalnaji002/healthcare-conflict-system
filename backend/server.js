@@ -36,3 +36,6 @@ app.use("/api/admin", adminRoutes);
 
 const medicalRoutes = require("./routes/medicalRoutes");
 app.use("/api/medical", medicalRoutes);
+
+const requestRoutes = require("./routes/requestRoutes");
+app.use("/api/requests", requestRoutes);

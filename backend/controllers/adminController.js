@@ -68,6 +68,7 @@ const getAdminDashboard = (req, res) => {
       (SELECT COUNT(*) FROM users WHERE role = 'ngo') AS total_ngos,
       (SELECT COUNT(*) FROM users WHERE role = 'admin') AS total_admins,
       (SELECT COUNT(*) FROM join_requests WHERE status = 'pending') AS pending_join_requests,
+      (SELECT COUNT(*) FROM assistance_requests WHERE status = 'pending') AS pending_assistance_requests,
       (SELECT COUNT(*) FROM emergency_alerts WHERE status IN ('new', 'in_progress')) AS active_cases,
       (SELECT COUNT(*) FROM emergency_alerts WHERE status = 'new') AS security_alerts
   `;
@@ -349,9 +350,95 @@ const rejectUser = (req, res) => {
   });
 };
 
+// ================= GET ALL USERS =================
+const getAllUsers = (req, res) => {
+  const sql = `
+    SELECT
+      id,
+      full_name,
+      email,
+      phone,
+      role,
+      status,
+      is_verified,
+      created_at
+    FROM users
+    ORDER BY created_at DESC
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("GET ALL USERS ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    return res.status(200).json({
+      message: "Users fetched successfully",
+      count: results.length,
+      users: results,
+    });
+  });
+};
+
+// ================= UPDATE USER STATUS =============
+const updateUserStatus = (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!["active", "inactive"].includes(status)) {
+    return res.status(400).json({ message: "Invalid status" });
+  }
+
+  const sql = `
+    UPDATE users
+    SET status = ?
+    WHERE id = ?
+  `;
+
+  db.query(sql, [status, id], (err, result) => {
+    if (err) {
+      console.error("UPDATE USER STATUS ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      message: `User ${status === "active" ? "activated" : "suspended"} successfully`,
+    });
+  });
+};
+
+// ================= GET ALL NGOS =============
+const getNGOs = (req, res) => {
+  const sql = `
+    SELECT
+      ngo_id,
+      organization_name
+    FROM ngos
+    ORDER BY organization_name
+  `;
+
+  db.query(sql, (err, rows) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({
+        message: "Server error",
+      });
+    }
+
+    res.json(rows);
+  });
+};
+
 module.exports = {
   getPendingRegistrations,
   getAdminDashboard,
   approveUser,
   rejectUser,
+  getAllUsers,
+  updateUserStatus,
+  getNGOs,
 };
