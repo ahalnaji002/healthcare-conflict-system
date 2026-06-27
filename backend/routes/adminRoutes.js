@@ -7,6 +7,7 @@ const {
   getPendingRegistrations,
   getAdminDashboard,
   approveUser,
+  rejectUser,
 } = require("../controllers/adminController");
 
 // GET /api/admin/pending-registrations
@@ -17,5 +18,8 @@ router.get("/dashboard", verifyToken, getAdminDashboard);
 
 // PUT /api/admin/approve-user/:id
 router.put("/approve-user/:id", verifyToken, approveUser);
+
+// PUT /api/admin/reject-user/:id
+router.put("/reject-user/:id", verifyToken, rejectUser);
 
 module.exports = router;
