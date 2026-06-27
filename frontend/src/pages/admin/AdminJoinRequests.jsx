@@ -7,42 +7,90 @@ function AdminJoinRequests() {
   const [typeFilter, setTypeFilter] = useState("All Types");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [approveModal, setApproveModal] = useState(null);
+  const [approving, setApproving] = useState(false);
 
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    const fetchPendingRegistrations = async () => {
-      try {
-        setLoading(true);
-        setError("");
+  const fetchPendingRegistrations = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      setSuccess("");
 
-        const res = await fetch(
-          "http://localhost:5000/api/admin/pending-registrations",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+      const res = await fetch(
+        "http://localhost:5000/api/admin/pending-registrations",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
+        },
+      );
 
-        const data = await res.json();
+      const data = await res.json();
 
-        if (!res.ok) {
-          setError(data.message || "Failed to fetch pending registrations");
-          return;
-        }
-
-        setRequests(data.requests || []);
-      } catch (err) {
-        console.error("FETCH PENDING REGISTRATIONS ERROR:", err);
-        setError("Server connection error");
-      } finally {
-        setLoading(false);
+      if (!res.ok) {
+        setError(data.message || "Failed to fetch pending registrations");
+        return;
       }
-    };
 
+      setRequests(data.requests || []);
+    } catch (err) {
+      console.error("FETCH PENDING REGISTRATIONS ERROR:", err);
+      setError("Server connection error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPendingRegistrations();
   }, [token]);
+
+  const approveRequest = async () => {
+    if (!approveModal || approving) return;
+
+    try {
+      setApproving(true);
+      setError("");
+      setSuccess("");
+
+      const id = approveModal.join_request_id;
+
+      const res = await fetch(
+        `http://localhost:5000/api/admin/approve-user/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Approval failed");
+        setApproveModal(null);
+        return;
+      }
+
+      setSuccess("User approved successfully and notification email sent.");
+
+      setRequests((prev) =>
+        prev.filter((request) => request.join_request_id !== id),
+      );
+
+      setApproveModal(null);
+    } catch (err) {
+      console.error("APPROVE REQUEST ERROR:", err);
+      setError("Server connection error");
+      setApproveModal(null);
+    } finally {
+      setApproving(false);
+    }
+  };
 
   const filteredRequests = useMemo(() => {
     return requests.filter((request) => {
@@ -68,9 +116,7 @@ function AdminJoinRequests() {
   const formatSubmittedDate = (dateValue) => {
     if (!dateValue) return "N/A";
 
-    const date = new Date(dateValue);
-
-    return date.toLocaleString("en-US", {
+    return new Date(dateValue).toLocaleString("en-US", {
       dateStyle: "medium",
       timeStyle: "short",
     });
@@ -152,6 +198,7 @@ function AdminJoinRequests() {
             </div>
 
             {error && <p className="error-message">{error}</p>}
+            {success && <p className="success-message">{success}</p>}
             {loading && <p>Loading pending registrations...</p>}
 
             {!loading && !error && filteredRequests.length === 0 && (
@@ -160,7 +207,6 @@ function AdminJoinRequests() {
 
             <div className="join-request-list">
               {!loading &&
-                !error &&
                 filteredRequests.map((request) => (
                   <div
                     className="join-request-card"
@@ -227,11 +273,26 @@ function AdminJoinRequests() {
                     </div>
 
                     <div className="join-request-actions">
-                      <button className="mini-btn">Approve</button>
-                      <button className="secondary-plan-btn">
+                      <button
+                        type="button"
+                        className="mini-btn"
+                        onClick={() => {
+                          setError("");
+                          setSuccess("");
+                          setApproveModal(request);
+                        }}
+                      >
+                        Approve
+                      </button>
+
+                      <button type="button" className="secondary-plan-btn">
                         Request Docs
                       </button>
-                      <button className="icon-mini-btn danger-icon-btn">
+
+                      <button
+                        type="button"
+                        className="icon-mini-btn danger-icon-btn"
+                      >
                         <span className="material-symbols-outlined">close</span>
                       </button>
                     </div>
@@ -246,7 +307,7 @@ function AdminJoinRequests() {
             <h2>Verification Progress</h2>
 
             <div className="progress-circle">
-              <span>{requests.length}</span>{" "}
+              <span>{requests.length}</span>
             </div>
 
             <p>
@@ -299,6 +360,63 @@ function AdminJoinRequests() {
           </div>
         </div>
       </section>
+
+      {approveModal && (
+        <div className="custom-modal-overlay">
+          <div className="custom-modal">
+            <div className="custom-modal-icon success">
+              <span className="material-symbols-outlined">how_to_reg</span>
+            </div>
+
+            <h2>Approve Registration</h2>
+
+            <p>
+              Are you sure you want to approve{" "}
+              <strong>{approveModal.name}</strong> as{" "}
+              <strong>
+                {approveModal.request_type === "doctor" ? "Doctor" : "NGO"}
+              </strong>
+              ?
+            </p>
+
+            <div className="custom-modal-info">
+              <p>
+                <strong>Email:</strong> {approveModal.email}
+              </p>
+              <p>
+                <strong>
+                  {approveModal.request_type === "doctor"
+                    ? "Specialty:"
+                    : "Organization:"}
+                </strong>{" "}
+                {approveModal.request_type === "doctor"
+                  ? approveModal.specialty || "N/A"
+                  : approveModal.organization_type || "N/A"}
+              </p>
+            </div>
+
+            <div className="custom-modal-actions">
+              <button
+                type="button"
+                className="secondary-plan-btn"
+                onClick={() => setApproveModal(null)}
+                disabled={approving}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="mini-btn"
+                onClick={approveRequest}
+                disabled={approving}
+              >
+                {approving ? "Approving..." : "Approve"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -278,9 +278,9 @@ const registerStaff = (req, res) => {
     // 5. Insert into join_requests table
     const insertSql = `
       INSERT INTO join_requests
-        (request_type, name, email, phone, specialty, license_number,
+        (request_type, name, email, password, phone, specialty, license_number,
          organization_type, description, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
     `;
 
     // Map fields based on role
@@ -295,6 +295,7 @@ const registerStaff = (req, res) => {
         role,
         name,
         email,
+        password,
         phone || null,
         specialty || null,
         licenseNumber || null,
