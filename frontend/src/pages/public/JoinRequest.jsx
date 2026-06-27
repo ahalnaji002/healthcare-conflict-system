@@ -6,12 +6,76 @@ import AuthHeader from "../../components/AuthHeader";
 function JoinRequest() {
   const [role, setRole] = useState("doctor");
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
+  const [documentFile, setDocumentFile] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const missingFields = [];
+
+    if (!e.target.fullName.value.trim()) missingFields.push("Full Name");
+    if (!e.target.email.value.trim()) missingFields.push("Email Address");
+    if (!e.target.phone.value.trim()) missingFields.push("Phone Number");
+    if (!e.target.organization.value.trim()) {
+      missingFields.push(
+        role === "doctor" ? "Hospital / Clinic Name" : "NGO Name",
+      );
+    }
+    if (!e.target.specialization.value) {
+      missingFields.push(
+        role === "doctor" ? "Medical Specialization" : "NGO Field",
+      );
+    }
+    if (!e.target.license.value.trim()) {
+      missingFields.push(
+        role === "doctor" ? "Medical License Number" : "Registration Number",
+      );
+    }
+    if (!e.target.address.value.trim())
+      missingFields.push("Work Address / Location");
+    if (!e.target.experience.value.trim()) {
+      missingFields.push(
+        role === "doctor"
+          ? "Professional Experience"
+          : "Humanitarian Services Description",
+      );
+    }
+    if (!e.target.password.value.trim()) missingFields.push("Password");
+    if (!e.target.confirmPassword.value.trim())
+      missingFields.push("Confirm Password");
+    if (!documentFile) missingFields.push("Verification Documents");
+    if (!e.target.terms.checked) missingFields.push("Terms Confirmation");
+
+    if (missingFields.length > 0) {
+      setMessageType("error");
+      setMessage(
+        `Please complete the following fields: ${missingFields.join(", ")}`,
+      );
+      return;
+    }
+
     if (e.target.password.value !== e.target.confirmPassword.value) {
+      setMessageType("error");
       setMessage("Passwords do not match");
+      return;
+    }
+
+    if (!documentFile) {
+      setMessageType("error");
+      setMessage("Please upload verification documents");
+      return;
+    }
+
+    if (!e.target.terms.checked) {
+      setMessageType("error");
+      setMessage("You must confirm that the submitted information is accurate");
+      return;
+    }
+
+    if (e.target.password.value.length < 6) {
+      setMessageType("error");
+      setMessage("Password must be at least 6 characters");
       return;
     }
 
@@ -34,8 +98,10 @@ function JoinRequest() {
         services_description: role === "ngo" ? e.target.experience.value : null,
       });
 
+      setMessageType("success");
       setMessage(res.data.message);
     } catch (err) {
+      setMessageType("error");
       setMessage(err.response?.data?.message || "Registration failed");
     }
   };
@@ -274,12 +340,23 @@ function JoinRequest() {
                   </p>
                 </div>
 
-                <button type="button">Choose File</button>
+                <input
+                  type="file"
+                  id="documents"
+                  style={{ display: "none" }}
+                  onChange={(e) => setDocumentFile(e.target.files[0])}
+                />
+
+                {documentFile && <p>{documentFile.name}</p>}
+
+                <label htmlFor="documents" className="upload-btn">
+                  Choose File
+                </label>
               </div>
 
               <div className="form-bottom">
                 <label className="terms-check">
-                  <input type="checkbox" />
+                  <input type="checkbox" name="terms" />
                   <span>
                     I confirm that all submitted information is accurate and
                     agree to the <a href="#terms">Terms of Service</a>.
@@ -287,7 +364,13 @@ function JoinRequest() {
                 </label>
 
                 {message && (
-                  <p style={{ color: "green", marginBottom: "10px" }}>
+                  <p
+                    className={
+                      messageType === "success"
+                        ? "success-message"
+                        : "error-message"
+                    }
+                  >
                     {message}
                   </p>
                 )}
