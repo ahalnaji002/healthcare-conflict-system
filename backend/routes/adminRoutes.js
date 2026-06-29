@@ -33,5 +33,7 @@ router.patch("/users/:id/status", verifyToken, updateUserStatus);
 
 // GET /api/admin/ngos
 router.get("/ngos", verifyToken, getNGOs);
+// GET /api/admin/system-stats
+router.get("/system-stats", verifyToken, getAdminDashboard);
 
 module.exports = router;
