@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
-import DoctorTopbar from "../../components/DoctorTopbar";
 
 function DoctorProfile() {
   const [doctor, setDoctor] = useState(null);
@@ -35,14 +34,6 @@ function DoctorProfile() {
 
   return (
     <>
-      <DoctorTopbar
-        title="Doctor Profile"
-        subtitle={`Welcome back, Dr. ${
-          doctor.name || "Doctor"
-        }. Manage professional information, availability, and account settings.`}
-        doctor={doctor}
-      />
-
       <section className="profile-layout">
         <div className="content-left">
           <div className="panel profile-main-card">
@@ -53,6 +44,7 @@ function DoctorProfile() {
 
               <div>
                 <h2>Dr. {doctor.name || "Doctor"}</h2>
+
                 <p>
                   {doctor.specialty || "Specialty not provided"} • License:{" "}
                   {doctor.license_number || "Not provided"}
@@ -62,6 +54,7 @@ function DoctorProfile() {
                   <span className="tag blue-tag">
                     {doctor.is_verified ? "Verified Doctor" : "Not Verified"}
                   </span>
+
                   <span className="tag green-tag">
                     {doctor.status || "active"}
                   </span>
@@ -74,6 +67,7 @@ function DoctorProfile() {
                 <span className="material-symbols-outlined">
                   medical_services
                 </span>
+
                 <div>
                   <p>Specialization</p>
                   <h3>{doctor.specialty || "Not provided"}</h3>
@@ -82,6 +76,7 @@ function DoctorProfile() {
 
               <div className="profile-info-item">
                 <span className="material-symbols-outlined">business</span>
+
                 <div>
                   <p>Workplace</p>
                   <h3>{doctor.workplace || "Not provided"}</h3>
@@ -92,6 +87,7 @@ function DoctorProfile() {
                 <span className="material-symbols-outlined">
                   local_hospital
                 </span>
+
                 <div>
                   <p>Clinic / Hospital</p>
                   <h3>{doctor.clinic_name || "Not provided"}</h3>
@@ -100,6 +96,7 @@ function DoctorProfile() {
 
               <div className="profile-info-item">
                 <span className="material-symbols-outlined">schedule</span>
+
                 <div>
                   <p>Available Hours</p>
                   <h3>{doctor.available_hours || "Not provided"}</h3>
@@ -180,9 +177,7 @@ function DoctorProfile() {
             <div className="availability-grid">
               <div className="availability-card active-day">
                 <h3>Current Availability</h3>
-                <p>
-                  {doctor.available_hours || "No available hours provided."}
-                </p>
+                <p>{doctor.available_hours || "No available hours provided."}</p>
               </div>
 
               <div className="availability-card">
@@ -218,6 +213,7 @@ function DoctorProfile() {
             <div className="security-list">
               <div className="security-item">
                 <span className="material-symbols-outlined">verified</span>
+
                 <div>
                   <h3>Verification</h3>
                   <p>
@@ -230,6 +226,7 @@ function DoctorProfile() {
 
               <div className="security-item">
                 <span className="material-symbols-outlined">shield_lock</span>
+
                 <div>
                   <h3>Data Access</h3>
                   <p>Allowed to access assigned patient records only.</p>
@@ -238,6 +235,7 @@ function DoctorProfile() {
 
               <div className="security-item">
                 <span className="material-symbols-outlined">lock</span>
+
                 <div>
                   <h3>Password</h3>
                   <p>Protected account password.</p>

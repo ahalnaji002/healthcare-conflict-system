@@ -6,6 +6,7 @@ const {
   registerStaff,
   login,
   forgotPassword,
+  resetPassword,
   verifyEmail,
   getProfile,
   getDoctorPatients,
@@ -13,9 +14,13 @@ const {
   getPatientDoctor,
   resendCode,
   verifyCode,
+  getLandingStats,
 } = require("../controllers/authController");
 
 const verifyToken = require("../middleware/authMiddleware");
+
+// GET LANDING STATS
+router.get("/landing-stats", getLandingStats);
 
 // Register Patient
 router.post("/register-patient", registerPatient);
@@ -28,6 +33,8 @@ router.post("/login", login);
 
 // Forgot Password
 router.post("/forgot-password", forgotPassword);
+
+router.post("/reset-password", resetPassword);
 
 // Verify Email
 router.get("/verify-email/:token", verifyEmail);

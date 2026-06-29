@@ -5,23 +5,71 @@ const nodemailer = require("nodemailer");
 // ================= EMAIL HELPER =================
 const sendEmail = (to, subject, html) => {
   const transporter = nodemailer.createTransport({
+<<<<<<< HEAD
     service: "gmail",
+=======
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+>>>>>>> 31677a378742d3fb97e82136f75a2b7e532eed6a
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+<<<<<<< HEAD
   });
 
   const mailOptions = {
     from: `"Healthcare System" <${process.env.EMAIL_USER}>`,
+=======
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+
+  const mailOptions = {
+    from: `"War Injuries Care" <${process.env.EMAIL_USER}>`,
+>>>>>>> 31677a378742d3fb97e82136f75a2b7e532eed6a
     to,
     subject,
     html,
   };
 
   transporter.sendMail(mailOptions, (err) => {
+<<<<<<< HEAD
     if (err) console.error("Email sending failed:", err);
     else console.log(`Email sent to ${to}`);
+=======
+    if (err) {
+      console.error("Email sending failed:", err);
+    } else {
+      console.log(`Email sent to ${to}`);
+    }
+  });
+};
+
+// ================= GET LANDING STATS =================
+const getLandingStats = (req, res) => {
+  const statsSql = `
+    SELECT
+      (SELECT COUNT(*) FROM patients) AS total_patients,
+      (SELECT COUNT(*) FROM doctors) AS total_doctors,
+      (SELECT COUNT(*) FROM ngos) AS total_ngos,
+      (SELECT COUNT(*) FROM join_requests WHERE status = 'pending') AS pending_join_requests,
+      (SELECT COUNT(*) FROM users WHERE status = 'active') AS active_users
+  `;
+
+  db.query(statsSql, (err, results) => {
+    if (err) {
+      console.error("GET LANDING STATS ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    return res.status(200).json({
+      message: "Landing stats fetched successfully",
+      stats: results[0],
+    });
+>>>>>>> 31677a378742d3fb97e82136f75a2b7e532eed6a
   });
 };
 
@@ -122,6 +170,7 @@ const registerPatient = (req, res) => {
               // Send verification email
               sendEmail(
                 email,
+<<<<<<< HEAD
                 "Verify Your Account - Healthcare System",
                 `
                 <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
@@ -136,11 +185,58 @@ const registerPatient = (req, res) => {
                   <p>If you did not register, please ignore this email.</p>
                 </div>
                 `
+=======
+                "Verify Your Account - War Injuries Care",
+                `
+  <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto; padding: 20px;">
+    <h2 style="color: #00478d; margin-bottom: 10px;">War Injuries Care</h2>
+
+    <p style="font-size: 15px; color: #333;">
+      Thank you for registering. Use the verification code below to activate your account:
+    </p>
+
+    <div style="
+      font-size: 36px;
+      font-weight: bold;
+      letter-spacing: 8px;
+      color: #00478d;
+      text-align: center;
+      padding: 22px;
+      background: #f0f4ff;
+      border-radius: 12px;
+      margin: 22px 0;
+    ">
+      ${verificationCode}
+    </div>
+
+    <p style="font-size: 14px; color: #555;">
+      This code expires in <strong>10 minutes</strong>.
+    </p>
+
+    <p style="font-size: 13px; color: #777;">
+      If you did not create an account, please ignore this email.
+    </p>
+  </div>
+  `,
+>>>>>>> 31677a378742d3fb97e82136f75a2b7e532eed6a
               );
 
               return res.status(201).json({
                 message: "Patient registered successfully. Please verify your account.",
                 user_id: userId,
+<<<<<<< HEAD
+=======
+                email,
+                role: "patient",
+              });
+
+              return res.status(201).json({
+                message:
+                  "Patient registered successfully. Please verify your account.",
+                user_id: userId,
+                email,
+                role: "patient",
+>>>>>>> 31677a378742d3fb97e82136f75a2b7e532eed6a
               });
             });
           },
@@ -217,9 +313,9 @@ const registerStaff = (req, res) => {
     // 5. Insert into join_requests table
     const insertSql = `
       INSERT INTO join_requests
-        (request_type, name, email, phone, specialty, license_number,
+        (request_type, name, email, password, phone, specialty, license_number,
          organization_type, description, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
     `;
 
     // Map fields based on role
@@ -234,6 +330,7 @@ const registerStaff = (req, res) => {
         role,
         name,
         email,
+        password,
         phone || null,
         specialty || null,
         licenseNumber || null,
@@ -344,33 +441,34 @@ const forgotPassword = (req, res) => {
 
   db.query(findUserSql, [email], (err, results) => {
     if (err) {
-      console.error(err);
+      console.error("FORGOT PASSWORD ERROR:", err);
       return res.status(500).json({ message: "Server error" });
     }
 
-    // Same message whether found or not
     if (results.length === 0) {
-      return res.status(200).json({
-        message: "If this email is registered, a reset code has been sent.",
+      return res.status(404).json({
+        message: "Email is not registered",
       });
     }
 
     const user = results[0];
-
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Store in verification_codes table using MySQL NOW() to avoid timezone issues
-    const insertSql = `
-      INSERT INTO verification_codes (user_id, code, purpose, expires_at)
-      VALUES (?, ?, 'patient_register', DATE_ADD(NOW(), INTERVAL 15 MINUTE))
+    const expireOldSql = `
+      UPDATE verification_codes
+      SET is_used = 1
+      WHERE user_id = ?
+        AND purpose = 'reset_password'
+        AND is_used = 0
     `;
 
-    db.query(insertSql, [user.id, resetCode], (insertErr) => {
-      if (insertErr) {
-        console.error(insertErr);
+    db.query(expireOldSql, [user.id], (expireErr) => {
+      if (expireErr) {
+        console.error("EXPIRE RESET CODES ERROR:", expireErr);
         return res.status(500).json({ message: "Server error" });
       }
 
+<<<<<<< HEAD
       // Send reset code by email
       sendEmail(
         email,
@@ -392,6 +490,120 @@ const forgotPassword = (req, res) => {
 
       return res.status(200).json({
         message: "If this email is registered, a reset code has been sent.",
+=======
+      const insertSql = `
+        INSERT INTO verification_codes
+          (user_id, code, purpose, expires_at, is_used)
+        VALUES (?, ?, 'reset_password', DATE_ADD(NOW(), INTERVAL 15 MINUTE), 0)
+      `;
+
+      db.query(insertSql, [user.id, resetCode], (insertErr) => {
+        if (insertErr) {
+          console.error("INSERT RESET CODE ERROR:", insertErr);
+          return res.status(500).json({ message: "Server error" });
+        }
+
+        sendEmail(
+          user.email,
+          "Reset Your Password - War Injuries Care",
+          `
+          <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto; padding: 20px;">
+            <h2 style="color: #00478d;">War Injuries Care</h2>
+            <p>Your password reset code is:</p>
+            <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #00478d; text-align: center; padding: 22px; background: #f0f4ff; border-radius: 12px; margin: 22px 0;">
+              ${resetCode}
+            </div>
+            <p>This code expires in <strong>15 minutes</strong>.</p>
+            <p>If you did not request this, please ignore this email.</p>
+          </div>
+          `,
+        );
+
+        return res.status(200).json({
+          message: "If this email is registered, a reset code has been sent.",
+        });
+      });
+    });
+  });
+};
+
+// ================= RESET PASSWORD =================
+const resetPassword = (req, res) => {
+  const { email, code, newPassword } = req.body;
+
+  if (!email || !code || !newPassword) {
+    return res.status(400).json({
+      message: "Email, reset code, and new password are required",
+    });
+  }
+
+  const findUserSql = "SELECT id FROM users WHERE email = ?";
+
+  db.query(findUserSql, [email], (userErr, userResults) => {
+    if (userErr) {
+      console.error("RESET PASSWORD FIND USER ERROR:", userErr);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (userResults.length === 0) {
+      return res.status(400).json({ message: "Invalid email or reset code" });
+    }
+
+    const user = userResults[0];
+
+    const verifyCodeSql = `
+      SELECT *
+      FROM verification_codes
+      WHERE user_id = ?
+        AND code = ?
+        AND purpose = 'reset_password'
+        AND is_used = 0
+        AND expires_at > NOW()
+      ORDER BY created_at DESC
+      LIMIT 1
+    `;
+
+    db.query(verifyCodeSql, [user.id, code], (codeErr, codeResults) => {
+      if (codeErr) {
+        console.error("RESET PASSWORD CODE ERROR:", codeErr);
+        return res.status(500).json({ message: "Server error" });
+      }
+
+      if (codeResults.length === 0) {
+        return res.status(400).json({
+          message: "Invalid or expired reset code",
+        });
+      }
+
+      const updatePasswordSql = `
+        UPDATE users
+        SET password = ?
+        WHERE id = ?
+      `;
+
+      db.query(updatePasswordSql, [newPassword, user.id], (updateErr) => {
+        if (updateErr) {
+          console.error("RESET PASSWORD UPDATE ERROR:", updateErr);
+          return res.status(500).json({ message: "Server error" });
+        }
+
+        const markUsedSql = `
+          UPDATE verification_codes
+          SET is_used = 1
+          WHERE code_id = ?
+        `;
+
+        db.query(markUsedSql, [codeResults[0].code_id], (markErr) => {
+          if (markErr) {
+            console.error("RESET PASSWORD MARK USED ERROR:", markErr);
+            return res.status(500).json({ message: "Server error" });
+          }
+
+          return res.status(200).json({
+            message: "Password reset successfully",
+          });
+        });
+>>>>>>> 31677a378742d3fb97e82136f75a2b7e532eed6a
       });
     });
   });
@@ -762,6 +974,7 @@ const resendCode = (req, res) => {
         // Send new verification code by email
         sendEmail(
           user.email,
+<<<<<<< HEAD
           "New Verification Code - Healthcare System",
           `
           <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
@@ -775,6 +988,36 @@ const resendCode = (req, res) => {
             <p>This code expires in <strong>10 minutes</strong>.</p>
           </div>
           `
+=======
+          "New Verification Code - War Injuries Care",
+          `
+  <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto; padding: 20px;">
+    <h2 style="color: #00478d; margin-bottom: 10px;">War Injuries Care</h2>
+
+    <p style="font-size: 15px; color: #333;">
+      Your new verification code is:
+    </p>
+
+    <div style="
+      font-size: 36px;
+      font-weight: bold;
+      letter-spacing: 8px;
+      color: #00478d;
+      text-align: center;
+      padding: 22px;
+      background: #f0f4ff;
+      border-radius: 12px;
+      margin: 22px 0;
+    ">
+      ${code}
+    </div>
+
+    <p style="font-size: 14px; color: #555;">
+      This code expires in <strong>10 minutes</strong>.
+    </p>
+  </div>
+  `,
+>>>>>>> 31677a378742d3fb97e82136f75a2b7e532eed6a
         );
 
         return res.status(200).json({
@@ -883,4 +1126,10 @@ module.exports = {
   getPatientDoctor,
   verifyCode,
   resendCode,
+<<<<<<< HEAD
 };
+=======
+  getLandingStats,
+  resetPassword,
+};
+>>>>>>> 31677a378742d3fb97e82136f75a2b7e532eed6a

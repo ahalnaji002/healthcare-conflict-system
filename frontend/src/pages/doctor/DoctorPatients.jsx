@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
-import DoctorTopbar from "../../components/DoctorTopbar";
 
 function DoctorPatients() {
   const [doctor, setDoctor] = useState(null);
@@ -55,14 +54,6 @@ function DoctorPatients() {
 
   return (
     <>
-      <DoctorTopbar
-        title="Patients Management"
-        subtitle={`Welcome back, Dr. ${
-          doctor.name || "Doctor"
-        }. Review assigned patients, priorities, and follow-up status.`}
-        doctor={doctor}
-      />
-
       <section className="stats-grid">
         <div className="stat-box blue">
           <div>

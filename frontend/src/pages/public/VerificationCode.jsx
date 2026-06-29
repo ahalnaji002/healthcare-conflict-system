@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
+import AppLogo from "../../components/AppLogo";
 
 function VerificationCode() {
   const navigate = useNavigate();
@@ -172,14 +173,9 @@ function VerificationCode() {
       <main className="verification-main">
         <div className="verification-container">
           <div className="verification-brand">
-            <div className="verification-brand-icon">
-              <span className="material-symbols-outlined">
-                health_and_safety
-              </span>
+            <div className="logo-area">
+              <AppLogo variant="small" />
             </div>
-
-            <h1>War Injuries Care</h1>
-            <p>Smart Medical Follow-up System</p>
           </div>
 
           <section className="verification-card">

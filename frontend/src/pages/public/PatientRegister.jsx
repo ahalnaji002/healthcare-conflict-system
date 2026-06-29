@@ -1,7 +1,8 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "../../styles/dashboard.css";
 import API from "../../services/api";
 import { useState } from "react";
+import AuthHeader from "../../components/AuthHeader";
 
 function PatientRegister() {
   const [message, setMessage] = useState("");
@@ -48,27 +49,7 @@ function PatientRegister() {
 
   return (
     <div className="form-page">
-      <header className="form-header">
-        <Link to="/" className="form-logo">
-          War Injuries Care
-        </Link>
-
-        <nav className="form-nav">
-          <Link to="/">Home</Link>
-          <a href="#about">About</a>
-          <a href="#services">Services</a>
-          <Link to="/join-request" className="active-link">
-            Join Us
-          </Link>
-        </nav>
-
-        <div className="form-header-actions">
-          <Link to="/login">Login</Link>
-          <button type="button" className="emergency-btn">
-            Emergency Help
-          </button>
-        </div>
-      </header>
+      <AuthHeader />
 
       <main className="register-main">
         <div className="register-layout">

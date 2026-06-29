@@ -1,17 +1,66 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
+import API from "../../services/api";
+import AppLogo from "../../components/AppLogo";
 
+function AnimatedNumber({ value, duration = 900 }) {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const end = Number(value) || 0;
+
+    if (end === 0) {
+      return;
+    }
+
+    const incrementTime = 10;
+    const steps = Math.ceil(duration / incrementTime);
+    const increment = end / steps;
+
+    const timer = setInterval(() => {
+      start += increment;
+
+      if (start >= end) {
+        setDisplayValue(end);
+        clearInterval(timer);
+      } else {
+        setDisplayValue(Math.floor(start));
+      }
+    }, incrementTime);
+
+    return () => clearInterval(timer);
+  }, [value, duration]);
+
+  return <>{displayValue}</>;
+}
 
 function Landing() {
+  const [stats, setStats] = useState({
+    total_patients: 0,
+    total_doctors: 0,
+    total_ngos: 0,
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await API.get("/auth/landing-stats");
+        setStats(res.data.stats);
+      } catch (err) {
+        console.error("Failed to load landing stats:", err);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   return (
     <div className="landing-page">
       <header className="landing-header">
         <div className="logo-area">
-          <div className="logo-icon">+</div>
-          <div>
-            <h2>War Injuries Care</h2>
-            <p>Smart Medical Follow-up System</p>
-          </div>
+          <AppLogo />
         </div>
 
         <nav className="nav-links">
@@ -62,18 +111,24 @@ function Landing() {
             </div>
 
             <div className="stat-card blue">
-              <h3>Critical Cases</h3>
-              <p>24 Active</p>
+              <h3>
+                <AnimatedNumber value={stats.total_patients} />
+              </h3>
+              <p>Registered Patients</p>
             </div>
 
             <div className="stat-card green">
-              <h3>Medication Reminders</h3>
-              <p>On Schedule</p>
+              <h3>
+                <AnimatedNumber value={stats.total_doctors} />
+              </h3>
+              <p>Available Doctors</p>
             </div>
 
             <div className="stat-card orange">
-              <h3>NGO Requests</h3>
-              <p>12 Pending</p>
+              <h3>
+                <AnimatedNumber value={stats.total_ngos} />
+              </h3>
+              <p>Partner NGOs</p>
             </div>
           </div>
         </div>
@@ -119,34 +174,63 @@ function Landing() {
         <h2>Who Can Use the System?</h2>
 
         <div className="roles-grid">
-          <div className="role-card">
-            <h3>Patients</h3>
-            <p>
-              Track treatments, appointments, medications, and assistance
-              requests.
-            </p>
+          <div className="role-card role-card-with-icon">
+            <div className="role-image patient-role">
+              <span className="material-symbols-outlined">personal_injury</span>
+            </div>
+
+            <div>
+              <h3>Patients</h3>
+              <p>
+                Track treatments, appointments, medications, and assistance
+                requests.
+              </p>
+            </div>
           </div>
 
-          <div className="role-card">
-            <h3>Doctors</h3>
-            <p>
-              Follow patient cases, update treatment plans, and communicate
-              securely.
-            </p>
+          <div className="role-card role-card-with-icon">
+            <div className="role-image doctor-role">
+              <span className="material-symbols-outlined">stethoscope</span>
+            </div>
+
+            <div>
+              <h3>Doctors</h3>
+              <p>
+                Follow patient cases, update treatment plans, and communicate
+                securely.
+              </p>
+            </div>
           </div>
 
-          <div className="role-card">
-            <h3>NGOs</h3>
-            <p>
-              Review assistance requests and coordinate humanitarian support.
-            </p>
+          <div className="role-card role-card-with-icon">
+            <div className="role-image ngo-role">
+              <span className="material-symbols-outlined">
+                volunteer_activism
+              </span>
+            </div>
+
+            <div>
+              <h3>NGOs</h3>
+              <p>
+                Review assistance requests and coordinate humanitarian support.
+              </p>
+            </div>
           </div>
 
-          <div className="role-card">
-            <h3>Admins</h3>
-            <p>
-              Manage users, records, reports, system activity, and permissions.
-            </p>
+          <div className="role-card role-card-with-icon">
+            <div className="role-image admin-role">
+              <span className="material-symbols-outlined">
+                admin_panel_settings
+              </span>
+            </div>
+
+            <div>
+              <h3>Admins</h3>
+              <p>
+                Manage users, records, reports, system activity, and
+                permissions.
+              </p>
+            </div>
           </div>
         </div>
       </section>

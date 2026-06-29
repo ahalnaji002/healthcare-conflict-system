@@ -1,40 +1,43 @@
-import "../../styles/dashboard.css";
-import PatientTopbar from "../../components/PatientTopbar";
 import { useEffect, useState } from "react";
-import API from "../../services/api";
+import "../../styles/dashboard.css";
 
 function PatientTreatment() {
-  const [user, setUser] = useState(null);
-  const [message, setMessage] = useState("");
+  const [plan, setPlan] = useState(null);
+
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchPlan = async () => {
       try {
-        const res = await API.get("/auth/profile");
-        setUser(res.data.user);
+        const res = await fetch("http://localhost:5000/api/medical/my-plan", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.plans.length > 0) {
+          setPlan(data.plans[0]);
+        }
       } catch (err) {
-        setMessage(err.response?.data?.message || "Failed to load page");
+        console.error(err);
       }
     };
 
-    fetchProfile();
-  }, []);
+    fetchPlan();
+  }, [token]);
 
-  if (message) {
-    return <div style={{ padding: "30px", color: "red" }}>{message}</div>;
-  }
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
-  if (!user) {
-    return <div style={{ padding: "30px" }}>Loading...</div>;
-  }
   return (
     <>
-      <PatientTopbar
-        title="Treatment Plan"
-        subtitle={`Welcome back, ${user.name || "Patient"}. Review your current treatment plan.`}
-        user={user}
-      />
-
       <section className="stats-grid">
         <div className="stat-box blue">
           <div>
@@ -82,64 +85,55 @@ function PatientTreatment() {
             </div>
 
             <div className="treatment-timeline">
-              <div className="timeline-item done">
-                <div className="timeline-dot">
-                  <span className="material-symbols-outlined">check</span>
-                </div>
+              {plan ? (
+                <div className="timeline-item active-step">
+                  <div className="timeline-dot">
+                    <span className="material-symbols-outlined">healing</span>
+                  </div>
 
-                <div className="timeline-content">
-                  <h3>Initial Medical Assessment</h3>
-                  <p>
-                    Full injury evaluation and medical history review completed.
-                  </p>
-                  <span>Completed • 20 May 2026</span>
-                </div>
-              </div>
+                  <div className="timeline-content">
+                    <h3>{plan.title}</h3>
 
-              <div className="timeline-item done">
-                <div className="timeline-dot">
-                  <span className="material-symbols-outlined">check</span>
-                </div>
+                    <p>{plan.description}</p>
 
-                <div className="timeline-content">
-                  <h3>Medication Phase</h3>
-                  <p>
-                    Antibiotics and pain relief medication schedule started.
-                  </p>
-                  <span>Completed • 22 May 2026</span>
-                </div>
-              </div>
+                    <div className="treatment-info">
+                      <div className="treatment-info-item">
+                        <small>Status</small>
 
-              <div className="timeline-item active-step">
-                <div className="timeline-dot">
-                  <span className="material-symbols-outlined">healing</span>
-                </div>
+                        <span
+                          className={`status ${
+                            plan.status === "active"
+                              ? "approved"
+                              : plan.status === "completed"
+                                ? "completed"
+                                : "pending"
+                          }`}
+                        >
+                          {plan.status.charAt(0).toUpperCase() +
+                            plan.status.slice(1)}
+                        </span>
+                      </div>
 
-                <div className="timeline-content">
-                  <h3>Wound Care and Follow-up</h3>
-                  <p>
-                    Daily wound cleaning, cream application, and photo updates.
-                  </p>
-                  <span>In Progress • Current Stage</span>
-                </div>
-              </div>
+                      <div className="treatment-info-item">
+                        <small>Start Date</small>
+                        <strong>{formatDate(plan.start_date)}</strong>
+                      </div>
 
-              <div className="timeline-item">
-                <div className="timeline-dot">
-                  <span className="material-symbols-outlined">
-                    directions_walk
-                  </span>
+                      <div className="treatment-info-item">
+                        <small>End Date</small>
+                        <strong>{formatDate(plan.end_date)}</strong>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-
-                <div className="timeline-content">
-                  <h3>Physical Therapy</h3>
-                  <p>
-                    Guided rehabilitation exercises to improve movement and
-                    recovery.
-                  </p>
-                  <span>Upcoming • Starts 02 Jun 2026</span>
+              ) : (
+                <div className="timeline-item">
+                  <div className="timeline-content">
+                    <h3>No Treatment Plan</h3>
+                    <p>Your doctor has not assigned a treatment plan yet.</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -216,8 +210,8 @@ function PatientTreatment() {
               <span className="material-symbols-outlined">event</span>
 
               <div>
-                <h3>02 Jun</h3>
-                <p>Physical Therapy Session</p>
+                <h3>{plan?.end_date ? formatDate(plan.end_date) : "-"}</h3>{" "}
+                <p>{plan?.title || "Treatment Plan"}</p>{" "}
               </div>
             </div>
 

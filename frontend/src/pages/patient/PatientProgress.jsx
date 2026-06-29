@@ -1,40 +1,8 @@
 import "../../styles/dashboard.css";
-import PatientTopbar from "../../components/PatientTopbar";
-import { useEffect, useState } from "react";
-import API from "../../services/api";
 
 function PatientProgress() {
-  const [user, setUser] = useState(null);
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await API.get("/auth/profile");
-        setUser(res.data.user);
-      } catch (err) {
-        setMessage(err.response?.data?.message || "Failed to load page");
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
-  if (message) {
-    return <div style={{ padding: "30px", color: "red" }}>{message}</div>;
-  }
-
-  if (!user) {
-    return <div style={{ padding: "30px" }}>Loading...</div>;
-  }
   return (
     <>
-      <PatientTopbar
-        title="Health Progress"
-        subtitle={`Welcome back, ${user.name || "Patient"}. Track your recovery progress.`}
-        user={user}
-      />
-
       <section className="stats-grid">
         <div className="stat-box blue">
           <div>
@@ -77,6 +45,7 @@ function PatientProgress() {
                 <h2>Recovery Overview</h2>
                 <p>Weekly recovery changes based on your treatment plan.</p>
               </div>
+
               <button>Export Report</button>
             </div>
 
@@ -84,12 +53,15 @@ function PatientProgress() {
               <div className="chart-bar" style={{ height: "38%" }}>
                 <span>Week 1</span>
               </div>
+
               <div className="chart-bar" style={{ height: "52%" }}>
                 <span>Week 2</span>
               </div>
+
               <div className="chart-bar" style={{ height: "61%" }}>
                 <span>Week 3</span>
               </div>
+
               <div className="chart-bar active-bar" style={{ height: "72%" }}>
                 <span>Week 4</span>
               </div>
@@ -110,9 +82,11 @@ function PatientProgress() {
                   <h3>Pain Level</h3>
                   <p>Current pain level compared to last week.</p>
                 </div>
+
                 <div className="indicator-meter">
                   <span style={{ width: "30%" }}></span>
                 </div>
+
                 <strong>Low</strong>
               </div>
 
@@ -121,9 +95,11 @@ function PatientProgress() {
                   <h3>Wound Healing</h3>
                   <p>Visible improvement based on follow-up notes.</p>
                 </div>
+
                 <div className="indicator-meter">
                   <span style={{ width: "76%" }}></span>
                 </div>
+
                 <strong>Good</strong>
               </div>
 
@@ -132,9 +108,11 @@ function PatientProgress() {
                   <h3>Mobility</h3>
                   <p>Movement ability after therapy and exercises.</p>
                 </div>
+
                 <div className="indicator-meter">
                   <span style={{ width: "64%" }}></span>
                 </div>
+
                 <strong>Improving</strong>
               </div>
             </div>
@@ -160,6 +138,7 @@ function PatientProgress() {
 
             <div className="health-record-card">
               <span className="material-symbols-outlined">description</span>
+
               <div>
                 <h3>Doctor Review</h3>
                 <p>Wound condition stable, no infection signs.</p>
@@ -169,6 +148,7 @@ function PatientProgress() {
 
             <div className="health-record-card">
               <span className="material-symbols-outlined">photo_camera</span>
+
               <div>
                 <h3>Wound Photo Update</h3>
                 <p>Photo submitted for doctor review.</p>

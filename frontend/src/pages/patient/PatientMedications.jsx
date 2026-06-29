@@ -1,40 +1,8 @@
 import "../../styles/dashboard.css";
-import PatientTopbar from "../../components/PatientTopbar";
-import { useEffect, useState } from "react";
-import API from "../../services/api";
 
 function PatientMedications() {
-  const [user, setUser] = useState(null);
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await API.get("/auth/profile");
-        setUser(res.data.user);
-      } catch (err) {
-        setMessage(err.response?.data?.message || "Failed to load page");
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
-  if (message) {
-    return <div style={{ padding: "30px", color: "red" }}>{message}</div>;
-  }
-
-  if (!user) {
-    return <div style={{ padding: "30px" }}>Loading...</div>;
-  }
   return (
     <>
-      <PatientTopbar
-        title="Medication Reminders"
-        subtitle={`Welcome back, ${user.name || "Patient"}. Here are your medication reminders.`}
-        user={user}
-      />
-
       <section className="stats-grid">
         <div className="stat-box blue">
           <div>

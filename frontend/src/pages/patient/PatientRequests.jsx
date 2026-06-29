@@ -1,40 +1,8 @@
 import "../../styles/dashboard.css";
-import PatientTopbar from "../../components/PatientTopbar";
-import { useEffect, useState } from "react";
-import API from "../../services/api";
 
 function PatientRequests() {
-  const [user, setUser] = useState(null);
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await API.get("/auth/profile");
-        setUser(res.data.user);
-      } catch (err) {
-        setMessage(err.response?.data?.message || "Failed to load page");
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
-  if (message) {
-    return <div style={{ padding: "30px", color: "red" }}>{message}</div>;
-  }
-
-  if (!user) {
-    return <div style={{ padding: "30px" }}>Loading...</div>;
-  }
   return (
     <>
-      <PatientTopbar
-        title="Assistance Requests"
-        subtitle={`Welcome back, ${user.name || "Patient"}. Track your medical and humanitarian requests.`}
-        user={user}
-      />
-
       <section className="stats-grid">
         <div className="stat-box blue">
           <div>
@@ -117,10 +85,7 @@ function PatientRequests() {
 
             <div className="request-field">
               <label>Request Description</label>
-              <textarea
-                rows="5"
-                placeholder="Describe your need clearly..."
-              ></textarea>
+              <textarea rows="5" placeholder="Describe your need clearly..." />
             </div>
 
             <button type="button" className="submit-request-btn">
@@ -146,6 +111,7 @@ function PatientRequests() {
                   <h3>Medical Supplies</h3>
                   <p>Wound dressing and antiseptic materials.</p>
                 </div>
+
                 <span className="status pending">Under Review</span>
               </div>
 
@@ -165,6 +131,7 @@ function PatientRequests() {
                   <h3>Transportation Support</h3>
                   <p>Transport to rehabilitation center.</p>
                 </div>
+
                 <span className="status taken">Approved</span>
               </div>
 
@@ -184,6 +151,7 @@ function PatientRequests() {
                   <h3>Financial Aid</h3>
                   <p>Support for medical examination fees.</p>
                 </div>
+
                 <span className="status pending">Pending</span>
               </div>
 
