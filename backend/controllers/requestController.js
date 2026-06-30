@@ -15,6 +15,13 @@ const createRequest = (req, res) => {
     location,
   } = req.body;
 
+  // Validate required fields
+  if (!patient_id || !request_type) {
+    return res.status(400).json({
+      message: "Required fields: patient_id, request_type",
+    });
+  }
+
   const sql = `
     INSERT INTO assistance_requests
     (
@@ -32,16 +39,16 @@ const createRequest = (req, res) => {
   db.query(
     sql,
     [
-      need_request_id,
+      need_request_id || null,
       patient_id,
       request_type,
-      description,
-      urgency_level,
-      location,
+      description || null,
+      urgency_level || "medium",
+      location || null,
     ],
     (err, result) => {
       if (err) {
-        console.error(err);
+        console.error("CREATE REQUEST ERROR:", err);
         return res.status(500).json({
           message: "Server error",
         });
@@ -80,7 +87,7 @@ const getAllRequests = (req, res) => {
 
   db.query(sql, (err, rows) => {
     if (err) {
-      console.error(err);
+      console.error("GET ALL REQUESTS ERROR:", err);
       return res.status(500).json({
         message: "Server error",
       });
@@ -100,20 +107,26 @@ const assignNGO = (req, res) => {
   const { id } = req.params;
   const { ngo_id } = req.body;
 
-  const sql = `
-UPDATE assistance_requests
-SET
-ngo_id=?,
-status='in_progress'
-WHERE assistance_request_id=?
-`;
+  if (!ngo_id) {
+    return res.status(400).json({ message: "ngo_id is required" });
+  }
 
-  db.query(sql, [ngo_id, id], (err) => {
+  const sql = `
+    UPDATE assistance_requests
+    SET ngo_id = ?, status = 'in_progress'
+    WHERE assistance_request_id = ?
+  `;
+
+  db.query(sql, [ngo_id, id], (err, result) => {
     if (err) {
-      console.error(err);
+      console.error("ASSIGN NGO ERROR:", err);
       return res.status(500).json({
         message: "Server error",
       });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Assistance request not found" });
     }
 
     res.json({
@@ -129,24 +142,44 @@ WHERE assistance_request_id=?
 // ======================================================
 
 const getMyTasks = (req, res) => {
-  const ngoId = req.user.id;
+  const userId = req.user.id;
 
-  const sql = `
-SELECT *
-FROM assistance_requests
-WHERE ngo_id=?
-ORDER BY created_at DESC
-`;
+  // Step 1: Find the ngo_id linked to this logged-in user
+  const findNgoSql = "SELECT ngo_id FROM ngos WHERE user_id = ?";
 
-  db.query(sql, [ngoId], (err, rows) => {
+  db.query(findNgoSql, [userId], (err, ngoResults) => {
     if (err) {
-      console.error(err);
-      return res.status(500).json({
-        message: "Server error",
-      });
+      console.error("GET MY TASKS - FIND NGO ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
     }
 
-    res.json(rows);
+    if (ngoResults.length === 0) {
+      return res.status(404).json({ message: "NGO profile not found" });
+    }
+
+    const ngoId = ngoResults[0].ngo_id;
+
+    // Step 2: Fetch all assistance requests assigned to this NGO
+    const sql = `
+      SELECT
+        ar.*,
+        u.full_name,
+        u.phone
+      FROM assistance_requests ar
+      LEFT JOIN patients p ON ar.patient_id = p.patient_id
+      LEFT JOIN users u ON p.user_id = u.id
+      WHERE ar.ngo_id = ?
+      ORDER BY ar.created_at DESC
+    `;
+
+    db.query(sql, [ngoId], (tasksErr, rows) => {
+      if (tasksErr) {
+        console.error("GET MY TASKS ERROR:", tasksErr);
+        return res.status(500).json({ message: "Server error" });
+      }
+
+      res.json(rows);
+    });
   });
 };
 
@@ -157,25 +190,66 @@ ORDER BY created_at DESC
 // ======================================================
 
 const updateTaskStatus = (req, res) => {
+  const userId = req.user.id;
   const { id } = req.params;
   const { status } = req.body;
 
-  const sql = `
-UPDATE assistance_requests
-SET status=?
-WHERE assistance_request_id=?
-`;
+  const allowedStatuses = ["in_progress", "completed"];
 
-  db.query(sql, [status, id], (err) => {
+  if (!status || !allowedStatuses.includes(status)) {
+    return res.status(400).json({
+      message: "Status must be 'in_progress' or 'completed'",
+    });
+  }
+
+  // Verify this NGO owns this request before updating
+  const findNgoSql = "SELECT ngo_id FROM ngos WHERE user_id = ?";
+
+  db.query(findNgoSql, [userId], (err, ngoResults) => {
     if (err) {
-      console.error(err);
-      return res.status(500).json({
-        message: "Server error",
-      });
+      console.error("UPDATE STATUS - FIND NGO ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
     }
 
-    res.json({
-      message: "Status updated successfully",
+    if (ngoResults.length === 0) {
+      return res.status(404).json({ message: "NGO profile not found" });
+    }
+
+    const ngoId = ngoResults[0].ngo_id;
+
+    const checkSql = `
+      SELECT assistance_request_id FROM assistance_requests
+      WHERE assistance_request_id = ? AND ngo_id = ?
+    `;
+
+    db.query(checkSql, [id, ngoId], (checkErr, checkResults) => {
+      if (checkErr) {
+        console.error("UPDATE STATUS - CHECK ERROR:", checkErr);
+        return res.status(500).json({ message: "Server error" });
+      }
+
+      if (checkResults.length === 0) {
+        return res.status(403).json({
+          message: "This request is not assigned to your organization",
+        });
+      }
+
+      const updateSql = `
+        UPDATE assistance_requests
+        SET status = ?
+        WHERE assistance_request_id = ?
+      `;
+
+      db.query(updateSql, [status, id], (updateErr) => {
+        if (updateErr) {
+          console.error("UPDATE STATUS ERROR:", updateErr);
+          return res.status(500).json({ message: "Server error" });
+        }
+
+        res.json({
+          message: "Status updated successfully",
+        });
+      });
     });
   });
 };
