@@ -35,6 +35,81 @@ const getMyPlan = (req, res) => {
   });
 };
 
+// ================= PRESCRIBE MEDICATION =================
+const prescribe = (req, res) => {
+  const doctorUserId = req.user.id;
+  const { patient_id, medicine_name, dose, freq, instructions, start_date, end_date } = req.body;
+
+  // 1. Validate required fields
+  if (!patient_id || !medicine_name || !dose || !freq) {
+    return res.status(400).json({
+      message: "Required fields: patient_id, medicine_name, dose, freq",
+    });
+  }
+
+  // 2. Verify this doctor is assigned to this patient
+  const checkAssignmentSql = `
+    SELECT doctors.doctor_id, treatment_plans.plan_id
+    FROM doctors
+    JOIN patient_doctor ON doctors.doctor_id = patient_doctor.doctor_id
+    JOIN treatment_plans ON patient_doctor.patient_id = treatment_plans.patient_id
+      AND doctors.doctor_id = treatment_plans.doctor_id
+    WHERE doctors.user_id = ? AND patient_doctor.patient_id = ?
+    LIMIT 1
+  `;
+
+  db.query(checkAssignmentSql, [doctorUserId, patient_id], (err, results) => {
+    if (err) {
+      console.error("PRESCRIBE CHECK ASSIGNMENT ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(403).json({
+        message: "You are not assigned to this patient or no treatment plan exists",
+      });
+    }
+
+    const planId = results[0].plan_id;
+
+    // 3. Insert medication into medications table
+    const insertSql = `
+      INSERT INTO medications
+        (plan_id, medication_name, dose, frequency, instructions, start_date, end_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(
+      insertSql,
+      [
+        planId,
+        medicine_name,
+        dose,
+        freq,
+        instructions || null,
+        start_date || null,
+        end_date || null,
+      ],
+      (insertErr, result) => {
+        if (insertErr) {
+          console.error("PRESCRIBE INSERT ERROR:", insertErr);
+          return res.status(500).json({ message: "Failed to add medication" });
+        }
+
+        return res.status(201).json({
+          message: "Medication prescribed successfully",
+          medication_id: result.insertId,
+          plan_id: planId,
+          medicine_name,
+          dose,
+          freq,
+        });
+      }
+    );
+  });
+};
+
 module.exports = {
   getMyPlan,
+  prescribe,
 };

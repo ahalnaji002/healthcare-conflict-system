@@ -1,7 +1,32 @@
-import { Link } from "react-router-dom";
-import "../../styles/dashboard.css";
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import API from "../../services/api";
 
 function DoctorUpdateTreatment() {
+  const navigate = useNavigate();
+const [message, setMessage] = useState("");
+const [error, setError] = useState("");
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setMessage("");
+  setError("");
+
+  try {
+    const res = await API.post("/medical/prescribe", {
+      patient_id: 1, // hardcoded for now until patient selection is connected
+      medicine_name: e.target.medicine_name.value,
+      dose: e.target.dose.value,
+      freq: e.target.freq.value,
+      instructions: e.target.instructions.value,
+      start_date: e.target.start_date.value,
+      end_date: e.target.end_date.value,
+    });
+    setMessage(res.data.message);
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to update treatment plan");
+  }
+};
   return (
     <>
       <section className="update-treatment-layout">
@@ -42,14 +67,11 @@ function DoctorUpdateTreatment() {
               </div>
             </div>
 
-            <form className="treatment-form">
+            <form className="treatment-form" onSubmit={handleSubmit}>
               <div className="treatment-form-grid">
                 <div className="treatment-field">
                   <label>Plan Title</label>
-                  <input
-                    type="text"
-                    defaultValue="Lower Limb Injury Recovery Plan"
-                  />
+                  <input type="text" name="medicine_name" defaultValue="Lower Limb Injury Recovery Plan" />
                 </div>
 
                 <div className="treatment-field">
@@ -63,45 +85,38 @@ function DoctorUpdateTreatment() {
 
                 <div className="treatment-field">
                   <label>Start Date</label>
-                  <input type="date" defaultValue="2026-05-28" />
+                  <input type="date" name="start_date" defaultValue="2026-05-28" />
                 </div>
 
                 <div className="treatment-field">
                   <label>Next Review Date</label>
-                  <input type="date" defaultValue="2026-06-02" />
+                  <input type="date" name="end_date" defaultValue="2026-06-02" />
                 </div>
               </div>
 
               <div className="treatment-field">
                 <label>Medication Instructions</label>
-                <textarea
-                  rows="4"
-                  defaultValue="Continue Amoxicillin 500mg after breakfast for 7 days. Pain relief tablet after lunch only when needed. Apply wound cream before sleep daily."
-                />
+                <textarea rows="4" name="instructions" defaultValue="Continue Amoxicillin..." />
               </div>
 
               <div className="treatment-field">
                 <label>Wound Care Instructions</label>
-                <textarea
-                  rows="4"
-                  defaultValue="Clean the wound once daily using sterile saline. Keep the wound dry after cleaning. Upload a wound photo every two days for review."
-                />
+                <textarea rows="4" name="dose" defaultValue="Clean the wound..." />
               </div>
 
               <div className="treatment-field">
                 <label>Physical Therapy Notes</label>
-                <textarea
-                  rows="4"
-                  defaultValue="Begin light mobility exercises after the next review if pain remains low and wound condition stays stable."
-                />
+                <textarea rows="4" name="freq" defaultValue="Begin light mobility..." />
               </div>
 
               <div className="treatment-actions">
+                {message && <p style={{ color: "green", marginBottom: "10px" }}>{message}</p>}
+                {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
                 <button type="button" className="secondary-plan-btn">
                   Save as Draft
                 </button>
 
-                <button type="button" className="submit-plan-btn">
+                <button type="submit" className="submit-plan-btn">
                   Update Treatment Plan
                 </button>
               </div>
