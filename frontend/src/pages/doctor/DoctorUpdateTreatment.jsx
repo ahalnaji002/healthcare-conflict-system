@@ -1,12 +1,26 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import API from "../../services/api";
 
 function DoctorUpdateTreatment() {
+  const { patientId } = useParams();
   const navigate = useNavigate();
-const [message, setMessage] = useState("");
-const [error, setError] = useState("");
+  const [patient, setPatient] = useState(null);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
+  useEffect(() => {
+    const fetchPatient = async () => {
+      try {
+        const res = await API.get(`/auth/doctor-patients/${patientId}`);
+        setPatient(res.data.patient);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to load patient data");
+      }
+    };
+
+    if (patientId) fetchPatient();
+  }, [patientId]);
 const handleSubmit = async (e) => {
   e.preventDefault();
   setMessage("");
@@ -14,7 +28,7 @@ const handleSubmit = async (e) => {
 
   try {
     const res = await API.post("/medical/prescribe", {
-      patient_id: 1, // hardcoded for now until patient selection is connected
+      patient_id: patientId, 
       medicine_name: e.target.medicine_name.value,
       dose: e.target.dose.value,
       freq: e.target.freq.value,
@@ -23,6 +37,7 @@ const handleSubmit = async (e) => {
       end_date: e.target.end_date.value,
     });
     setMessage(res.data.message);
+    e.target.reset();
   } catch (err) {
     setError(err.response?.data?.message || "Failed to update treatment plan");
   }
@@ -47,9 +62,12 @@ const handleSubmit = async (e) => {
               <div className="patient-avatar large-avatar">A</div>
 
               <div>
-                <h3>Ahmed Hashem</h3>
-                <p>PT-2026-001 • Lower limb injury • Critical priority</p>
-
+                <h3>{patient?.full_name || "Loading..."}</h3>
+                <p>
+                  {patient?.patient_id ? `PT-${String(patient.patient_id).padStart(3, "0")}` : ""}
+                  {" • "}
+                  {patient?.medical_condition || "No condition recorded"}
+                </p>
                 <div className="profile-badges">
                   <span className="priority-badge critical">Critical</span>
                   <span className="tag blue-tag">Wound Care</span>
@@ -70,8 +88,8 @@ const handleSubmit = async (e) => {
             <form className="treatment-form" onSubmit={handleSubmit}>
               <div className="treatment-form-grid">
                 <div className="treatment-field">
-                  <label>Plan Title</label>
-                  <input type="text" name="medicine_name" defaultValue="Lower Limb Injury Recovery Plan" />
+                  <label>Medicine Name</label>
+                  <input type="text" name="medicine_name" />
                 </div>
 
                 <div className="treatment-field">
@@ -85,28 +103,28 @@ const handleSubmit = async (e) => {
 
                 <div className="treatment-field">
                   <label>Start Date</label>
-                  <input type="date" name="start_date" defaultValue="2026-05-28" />
+                  <input type="date" name="start_date" />
                 </div>
 
                 <div className="treatment-field">
                   <label>Next Review Date</label>
-                  <input type="date" name="end_date" defaultValue="2026-06-02" />
+                  <input type="date" name="end_date"  />
                 </div>
               </div>
 
               <div className="treatment-field">
                 <label>Medication Instructions</label>
-                <textarea rows="4" name="instructions" defaultValue="Continue Amoxicillin..." />
+                <textarea rows="4" name="instructions"  />
               </div>
 
               <div className="treatment-field">
-                <label>Wound Care Instructions</label>
-                <textarea rows="4" name="dose" defaultValue="Clean the wound..." />
+                <label>Dose</label>
+                <textarea rows="4" name="dose"  />
               </div>
 
               <div className="treatment-field">
-                <label>Physical Therapy Notes</label>
-                <textarea rows="4" name="freq" defaultValue="Begin light mobility..." />
+                <label>Frequency</label>
+                <textarea rows="4" name="freq"  />
               </div>
 
               <div className="treatment-actions">
@@ -192,7 +210,7 @@ const handleSubmit = async (e) => {
             <h2>Quick Actions</h2>
 
             <div className="doctor-actions-grid">
-              <Link to="/doctor-patient-record">
+              <Link to={`/doctor-patient-record/${patientId}`}>
                 <button className="message-btn secondary-message-btn">
                   <span className="material-symbols-outlined">
                     clinical_notes

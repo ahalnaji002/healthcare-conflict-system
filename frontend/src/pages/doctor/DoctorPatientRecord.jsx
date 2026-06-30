@@ -281,7 +281,7 @@ function DoctorPatientRecord() {
             <h2>Doctor Actions</h2>
 
             <div className="doctor-actions-grid">
-              <Link to="/doctor-update-treatment">
+              <Link to={`/doctor-update-treatment/${patientId}`}>
                 <button className="message-btn">
                   <span className="material-symbols-outlined">edit_note</span>
                   Update Plan
