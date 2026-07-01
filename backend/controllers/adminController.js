@@ -471,6 +471,7 @@ const getDoctorsList = (req, res) => {
       d.specialty
     FROM doctors d
     JOIN users u ON d.user_id = u.id
+    WHERE u.status = 'active'
     ORDER BY u.full_name
   `;
 
