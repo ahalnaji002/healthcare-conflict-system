@@ -91,7 +91,7 @@ function App() {
           element={<DoctorPatientRecord />}
         />
         <Route
-          path="/doctor-update-treatment"
+          path="/doctor-update-treatment/:patientId"
           element={<DoctorUpdateTreatment />}
         />
         <Route path="/doctor-chat" element={<DoctorChat />} />

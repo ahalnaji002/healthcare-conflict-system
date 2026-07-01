@@ -517,7 +517,7 @@ CREATE TABLE `verification_codes` (
   `code_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int unsigned NOT NULL,
   `code` varchar(10) NOT NULL,
-  `purpose` enum('patient_register','reset_password') NOT NULL,
+  `purpose` enum('patient_register','doctor_activation','ngo_activation','reset_password') NOT NULL,
   `expires_at` datetime NOT NULL,
   `is_used` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,

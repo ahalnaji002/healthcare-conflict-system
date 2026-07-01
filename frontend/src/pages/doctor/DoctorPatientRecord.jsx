@@ -7,6 +7,7 @@ function DoctorPatientRecord() {
   const { patientId } = useParams();
 
   const [patient, setPatient] = useState(null);
+  const [medications, setMedications] = useState([]);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -19,6 +20,15 @@ function DoctorPatientRecord() {
 
         const patientRes = await API.get(`/auth/doctor-patients/${patientId}`);
         setPatient(patientRes.data.patient);
+
+        try {
+          const historyRes = await API.get(
+            `/medical/patient-history/${patientId}`,
+          );
+          setMedications(historyRes.data.medications || []);
+        } catch {
+          setMedications([]);
+        }
       } catch (err) {
         setMessage(
           err.response?.data?.message || "Failed to load patient record",
@@ -234,14 +244,36 @@ function DoctorPatientRecord() {
             <h2>Current Medication</h2>
 
             <div className="record-med-list">
-              <div className="record-med-item">
-                <span className="material-symbols-outlined">medication</span>
+              {medications.length > 0 ? (
+                medications.map((med) => (
+                  <div className="record-med-item" key={med.medication_id}>
+                    <span className="material-symbols-outlined">
+                      medication
+                    </span>
 
-                <div>
-                  <h3>No medication data yet</h3>
-                  <p>Medication records will appear here later.</p>
+                    <div>
+                      <h3>{med.medication_name}</h3>
+                      <p>
+                        {med.dose} • {med.frequency}
+                      </p>
+                      {med.instructions && (
+                        <p style={{ fontSize: "13px", color: "#777" }}>
+                          {med.instructions}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="record-med-item">
+                  <span className="material-symbols-outlined">medication</span>
+
+                  <div>
+                    <h3>No medication data yet</h3>
+                    <p>Medication records will appear here later.</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -249,7 +281,7 @@ function DoctorPatientRecord() {
             <h2>Doctor Actions</h2>
 
             <div className="doctor-actions-grid">
-              <Link to="/doctor-update-treatment">
+              <Link to={`/doctor-update-treatment/${patientId}`}>
                 <button className="message-btn">
                   <span className="material-symbols-outlined">edit_note</span>
                   Update Plan

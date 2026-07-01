@@ -2,20 +2,26 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
-require("dotenv").config();
 
 require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
+const emergencyRoutes = require("./routes/emergencyRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const medicalRoutes = require("./routes/medicalRoutes");
+const requestRoutes = require("./routes/requestRoutes");
 
 const app = express();
 
 app.use(morgan("dev"));
-
 app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/emergency", emergencyRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/medical", medicalRoutes);
+app.use("/api/requests", requestRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend server is running");
@@ -26,16 +32,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-const emergencyRoutes = require("./routes/emergencyRoutes");
-
-app.use("/api/emergency", emergencyRoutes);
-
-const adminRoutes = require("./routes/adminRoutes");
-app.use("/api/admin", adminRoutes);
-
-const medicalRoutes = require("./routes/medicalRoutes");
-app.use("/api/medical", medicalRoutes);
-
-const requestRoutes = require("./routes/requestRoutes");
-app.use("/api/requests", requestRoutes);

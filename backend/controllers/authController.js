@@ -138,7 +138,6 @@ const registerPatient = (req, res) => {
             ).toString();
 
             // 6. Insert into verification_codes table
-            // Using MySQL NOW() + INTERVAL to avoid timezone issues
             const insertCodeSql = `
               INSERT INTO verification_codes
                 (user_id, code, purpose, expires_at, is_used)
@@ -158,47 +157,21 @@ const registerPatient = (req, res) => {
                 `
   <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto; padding: 20px;">
     <h2 style="color: #00478d; margin-bottom: 10px;">War Injuries Care</h2>
-
     <p style="font-size: 15px; color: #333;">
       Thank you for registering. Use the verification code below to activate your account:
     </p>
-
-    <div style="
-      font-size: 36px;
-      font-weight: bold;
-      letter-spacing: 8px;
-      color: #00478d;
-      text-align: center;
-      padding: 22px;
-      background: #f0f4ff;
-      border-radius: 12px;
-      margin: 22px 0;
-    ">
+    <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #00478d;
+      text-align: center; padding: 22px; background: #f0f4ff; border-radius: 12px; margin: 22px 0;">
       ${verificationCode}
     </div>
-
-    <p style="font-size: 14px; color: #555;">
-      This code expires in <strong>10 minutes</strong>.
-    </p>
-
-    <p style="font-size: 13px; color: #777;">
-      If you did not create an account, please ignore this email.
-    </p>
+    <p style="font-size: 14px; color: #555;">This code expires in <strong>10 minutes</strong>.</p>
+    <p style="font-size: 13px; color: #777;">If you did not create an account, please ignore this email.</p>
   </div>
   `,
               );
 
               return res.status(201).json({
-                message:
-                  "Patient registered successfully. Please verify your account.",
-                user_id: userId,
-                email,
-                role: "patient",
-              });
-
-              return res.status(201).json({
-                message:
-                  "Patient registered successfully. Please verify your account.",
+                message: "Patient registered successfully. Please verify your account.",
                 user_id: userId,
                 email,
                 role: "patient",
@@ -220,12 +193,10 @@ const registerStaff = (req, res) => {
     role,
     phone,
     address,
-    // Doctor specific
     hospital,
     specialization,
     license,
     experience,
-    // NGO specific
     ngo_name,
     ngo_field,
     registration_number,
@@ -275,7 +246,7 @@ const registerStaff = (req, res) => {
         .json({ message: "A request with this email already exists" });
     }
 
-    // 5. Insert into join_requests table
+    // 5. Insert into join_requests table (with password for later approval)
     const insertSql = `
       INSERT INTO join_requests
         (request_type, name, email, password, phone, specialty, license_number,
@@ -283,7 +254,6 @@ const registerStaff = (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
     `;
 
-    // Map fields based on role
     const specialty = role === "doctor" ? specialization : ngo_field;
     const licenseNumber = role === "doctor" ? license : registration_number;
     const orgType = role === "doctor" ? hospital : ngo_name;
@@ -292,10 +262,7 @@ const registerStaff = (req, res) => {
     db.query(
       insertSql,
       [
-        role,
-        name,
-        email,
-        password,
+        role, name, email, password,
         phone || null,
         specialty || null,
         licenseNumber || null,
@@ -309,8 +276,7 @@ const registerStaff = (req, res) => {
         }
 
         return res.status(201).json({
-          message:
-            "Registration request submitted successfully. Please wait for admin approval.",
+          message: "Registration request submitted successfully. Please wait for admin approval.",
           request_id: result.insertId,
           status: "pending",
         });
@@ -323,7 +289,6 @@ const registerStaff = (req, res) => {
 const login = (req, res) => {
   const { email, password } = req.body;
 
-  // 1. Validate fields
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password are required" });
   }
@@ -336,26 +301,22 @@ const login = (req, res) => {
       return res.status(500).json({ message: "Server error" });
     }
 
-    // 2. User not found
     if (results.length === 0) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const user = results[0];
 
-    // 3. Check password
     if (password !== user.password) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // 4. Check if account is verified
     if (!user.is_verified) {
       return res.status(403).json({
         message: "Account not verified. Please verify your email first.",
       });
     }
 
-    // 5. Check account status
     if (user.status === "pending") {
       return res.status(403).json({
         message: "Account is pending admin approval. Please wait.",
@@ -374,7 +335,6 @@ const login = (req, res) => {
       });
     }
 
-    // 6. Generate JWT Token
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
@@ -411,9 +371,7 @@ const forgotPassword = (req, res) => {
     }
 
     if (results.length === 0) {
-      return res.status(404).json({
-        message: "Email is not registered",
-      });
+      return res.status(404).json({ message: "Email is not registered" });
     }
 
     const user = results[0];
@@ -452,7 +410,8 @@ const forgotPassword = (req, res) => {
           <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto; padding: 20px;">
             <h2 style="color: #00478d;">War Injuries Care</h2>
             <p>Your password reset code is:</p>
-            <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #00478d; text-align: center; padding: 22px; background: #f0f4ff; border-radius: 12px; margin: 22px 0;">
+            <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #00478d;
+              text-align: center; padding: 22px; background: #f0f4ff; border-radius: 12px; margin: 22px 0;">
               ${resetCode}
             </div>
             <p>This code expires in <strong>15 minutes</strong>.</p>
@@ -493,9 +452,8 @@ const resetPassword = (req, res) => {
 
     const user = userResults[0];
 
-    const verifyCodeSql = `
-      SELECT *
-      FROM verification_codes
+    const verifySql = `
+      SELECT * FROM verification_codes
       WHERE user_id = ?
         AND code = ?
         AND purpose = 'reset_password'
@@ -505,23 +463,17 @@ const resetPassword = (req, res) => {
       LIMIT 1
     `;
 
-    db.query(verifyCodeSql, [user.id, code], (codeErr, codeResults) => {
-      if (codeErr) {
-        console.error("RESET PASSWORD CODE ERROR:", codeErr);
+    db.query(verifySql, [user.id, code], (verifyErr, codeResults) => {
+      if (verifyErr) {
+        console.error("RESET PASSWORD VERIFY ERROR:", verifyErr);
         return res.status(500).json({ message: "Server error" });
       }
 
       if (codeResults.length === 0) {
-        return res.status(400).json({
-          message: "Invalid or expired reset code",
-        });
+        return res.status(400).json({ message: "Invalid or expired reset code" });
       }
 
-      const updatePasswordSql = `
-        UPDATE users
-        SET password = ?
-        WHERE id = ?
-      `;
+      const updatePasswordSql = "UPDATE users SET password = ? WHERE id = ?";
 
       db.query(updatePasswordSql, [newPassword, user.id], (updateErr) => {
         if (updateErr) {
@@ -541,9 +493,7 @@ const resetPassword = (req, res) => {
             return res.status(500).json({ message: "Server error" });
           }
 
-          return res.status(200).json({
-            message: "Password reset successfully",
-          });
+          return res.status(200).json({ message: "Password reset successfully" });
         });
       });
     });
@@ -558,7 +508,6 @@ const verifyEmail = (req, res) => {
     return res.status(400).json({ message: "Verification code is required" });
   }
 
-  // 1. Find the code in verification_codes table — check expiry using DB time
   const findCodeSql = `
     SELECT * FROM verification_codes 
     WHERE code = ? AND is_used = 0 AND expires_at > NOW()
@@ -572,7 +521,6 @@ const verifyEmail = (req, res) => {
       return res.status(500).json({ message: "Server error" });
     }
 
-    // 2. Code not found or expired
     if (results.length === 0) {
       return res.status(400).json({
         message: "Invalid, already used, or expired verification code",
@@ -581,7 +529,6 @@ const verifyEmail = (req, res) => {
 
     const codeRecord = results[0];
 
-    // 3. Mark code as used
     const markUsedSql =
       "UPDATE verification_codes SET is_used = 1 WHERE code_id = ?";
 
@@ -591,7 +538,6 @@ const verifyEmail = (req, res) => {
         return res.status(500).json({ message: "Server error" });
       }
 
-      // 4. Activate the user account
       const activateSql = "UPDATE users SET is_verified = 1 WHERE id = ?";
 
       db.query(activateSql, [codeRecord.user_id], (activateErr) => {
@@ -610,39 +556,18 @@ const verifyEmail = (req, res) => {
 
 // ================= GET PROFILE =================
 const getProfile = (req, res) => {
-  // req.user is set by the verifyToken middleware
   const userId = req.user.id;
 
   const sql = `
     SELECT 
-      users.id,
-      users.full_name,
-      users.email,
-      users.phone,
-      users.role,
-      users.status,
-      users.is_verified,
-      users.created_at,
-
-      patients.patient_id,
-      patients.national_id,
-      patients.date_of_birth,
-      patients.gender,
-      patients.address,
-      patients.city,
-      patients.location,
-      patients.blood_type,
-      patients.chronic_diseases,
-      patients.medical_condition,
+      users.id, users.full_name, users.email, users.phone,
+      users.role, users.status, users.is_verified, users.created_at,
+      patients.patient_id, patients.national_id, patients.date_of_birth,
+      patients.gender, patients.address, patients.city, patients.location,
+      patients.blood_type, patients.chronic_diseases, patients.medical_condition,
       patients.emergency_contact,
-
-      doctors.doctor_id,
-      doctors.specialty,
-      doctors.license_number,
-      doctors.clinic_name,
-      doctors.workplace,
-      doctors.available_hours
-
+      doctors.doctor_id, doctors.specialty, doctors.license_number,
+      doctors.clinic_name, doctors.workplace, doctors.available_hours
     FROM users
     LEFT JOIN patients ON users.id = patients.user_id
     LEFT JOIN doctors ON users.id = doctors.user_id
@@ -661,17 +586,12 @@ const getProfile = (req, res) => {
 
     const user = results[0];
 
-    // Only allow active and verified accounts
     if (!user.is_verified) {
-      return res.status(403).json({
-        message: "Account not verified.",
-      });
+      return res.status(403).json({ message: "Account not verified." });
     }
 
     if (user.status !== "active") {
-      return res.status(403).json({
-        message: "Account is not active.",
-      });
+      return res.status(403).json({ message: "Account is not active." });
     }
 
     return res.status(200).json({
@@ -685,7 +605,6 @@ const getProfile = (req, res) => {
         status: user.status,
         is_verified: user.is_verified,
         created_at: user.created_at,
-
         patient_id: user.patient_id,
         national_id: user.national_id,
         date_of_birth: user.date_of_birth,
@@ -697,7 +616,6 @@ const getProfile = (req, res) => {
         chronic_diseases: user.chronic_diseases,
         medical_condition: user.medical_condition,
         emergency_contact: user.emergency_contact,
-
         doctor_id: user.doctor_id,
         specialty: user.specialty,
         license_number: user.license_number,
@@ -715,28 +633,14 @@ const getDoctorPatients = (req, res) => {
 
   const sql = `
     SELECT 
-      patients.patient_id,
-      patients.national_id,
-      patients.date_of_birth,
-      patients.gender,
-      patients.address,
-      patients.blood_type,
-      patients.chronic_diseases,
-      patients.medical_condition,
-      patients.emergency_contact,
-
-      users.full_name,
-      users.email,
-      users.phone,
-      users.status
-
+      patients.patient_id, patients.national_id, patients.date_of_birth,
+      patients.gender, patients.address, patients.blood_type,
+      patients.chronic_diseases, patients.medical_condition, patients.emergency_contact,
+      users.full_name, users.email, users.phone, users.status
     FROM doctors
-    JOIN patient_doctor 
-      ON doctors.doctor_id = patient_doctor.doctor_id
-    JOIN patients 
-      ON patient_doctor.patient_id = patients.patient_id
-    JOIN users 
-      ON patients.user_id = users.id
+    JOIN patient_doctor ON doctors.doctor_id = patient_doctor.doctor_id
+    JOIN patients ON patient_doctor.patient_id = patients.patient_id
+    JOIN users ON patients.user_id = users.id
     WHERE doctors.user_id = ?
   `;
 
@@ -760,32 +664,16 @@ const getDoctorPatientRecord = (req, res) => {
 
   const sql = `
     SELECT 
-      patients.patient_id,
-      patients.national_id,
-      patients.date_of_birth,
-      patients.gender,
-      patients.address,
-      patients.blood_type,
-      patients.chronic_diseases,
-      patients.medical_condition,
-      patients.emergency_contact,
-
-      users.full_name,
-      users.email,
-      users.phone,
-      users.status,
-
+      patients.patient_id, patients.national_id, patients.date_of_birth,
+      patients.gender, patients.address, patients.blood_type,
+      patients.chronic_diseases, patients.medical_condition, patients.emergency_contact,
+      users.full_name, users.email, users.phone, users.status,
       doctors.doctor_id
-
     FROM doctors
-    JOIN patient_doctor 
-      ON doctors.doctor_id = patient_doctor.doctor_id
-    JOIN patients 
-      ON patient_doctor.patient_id = patients.patient_id
-    JOIN users 
-      ON patients.user_id = users.id
-    WHERE doctors.user_id = ?
-      AND patients.patient_id = ?
+    JOIN patient_doctor ON doctors.doctor_id = patient_doctor.doctor_id
+    JOIN patients ON patient_doctor.patient_id = patients.patient_id
+    JOIN users ON patients.user_id = users.id
+    WHERE doctors.user_id = ? AND patients.patient_id = ?
     LIMIT 1
   `;
 
@@ -814,25 +702,13 @@ const getPatientDoctor = (req, res) => {
 
   const sql = `
     SELECT 
-      doctors.doctor_id,
-      doctors.specialty,
-      doctors.license_number,
-      doctors.clinic_name,
-      doctors.workplace,
-      doctors.available_hours,
-
-      users.full_name,
-      users.email,
-      users.phone,
-      users.status
-
+      doctors.doctor_id, doctors.specialty, doctors.license_number,
+      doctors.clinic_name, doctors.workplace, doctors.available_hours,
+      users.full_name, users.email, users.phone, users.status
     FROM patients
-    JOIN patient_doctor
-      ON patients.patient_id = patient_doctor.patient_id
-    JOIN doctors
-      ON patient_doctor.doctor_id = doctors.doctor_id
-    JOIN users
-      ON doctors.user_id = users.id
+    JOIN patient_doctor ON patients.patient_id = patient_doctor.patient_id
+    JOIN doctors ON patient_doctor.doctor_id = doctors.doctor_id
+    JOIN users ON doctors.user_id = users.id
     WHERE patients.user_id = ?
     LIMIT 1
   `;
@@ -861,9 +737,7 @@ const resendCode = (req, res) => {
   const { user_id, email } = req.body;
 
   if (!user_id && !email) {
-    return res.status(400).json({
-      message: "User ID or email is required",
-    });
+    return res.status(400).json({ message: "User ID or email is required" });
   }
 
   const findUserSql = user_id
@@ -883,15 +757,12 @@ const resendCode = (req, res) => {
     }
 
     const user = userResults[0];
-
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
     const expireSql = `
       UPDATE verification_codes
       SET is_used = 1
-      WHERE user_id = ?
-        AND purpose = 'patient_register'
-        AND is_used = 0
+      WHERE user_id = ? AND purpose = 'patient_register' AND is_used = 0
     `;
 
     db.query(expireSql, [user.id], (expireErr) => {
@@ -912,35 +783,18 @@ const resendCode = (req, res) => {
           return res.status(500).json({ message: "Server error" });
         }
 
-        // Send new verification code by email
         sendEmail(
           user.email,
           "New Verification Code - War Injuries Care",
           `
   <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto; padding: 20px;">
     <h2 style="color: #00478d; margin-bottom: 10px;">War Injuries Care</h2>
-
-    <p style="font-size: 15px; color: #333;">
-      Your new verification code is:
-    </p>
-
-    <div style="
-      font-size: 36px;
-      font-weight: bold;
-      letter-spacing: 8px;
-      color: #00478d;
-      text-align: center;
-      padding: 22px;
-      background: #f0f4ff;
-      border-radius: 12px;
-      margin: 22px 0;
-    ">
+    <p style="font-size: 15px; color: #333;">Your new verification code is:</p>
+    <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #00478d;
+      text-align: center; padding: 22px; background: #f0f4ff; border-radius: 12px; margin: 22px 0;">
       ${code}
     </div>
-
-    <p style="font-size: 14px; color: #555;">
-      This code expires in <strong>10 minutes</strong>.
-    </p>
+    <p style="font-size: 14px; color: #555;">This code expires in <strong>10 minutes</strong>.</p>
   </div>
   `,
         );
@@ -982,13 +836,9 @@ const verifyCode = (req, res) => {
     const user = userResults[0];
 
     const verifySql = `
-      SELECT *
-      FROM verification_codes
-      WHERE user_id = ?
-        AND code = ?
-        AND purpose = 'patient_register'
-        AND is_used = 0
-        AND expires_at > NOW()
+      SELECT * FROM verification_codes
+      WHERE user_id = ? AND code = ? AND purpose = 'patient_register'
+        AND is_used = 0 AND expires_at > NOW()
       ORDER BY created_at DESC
       LIMIT 1
     `;
@@ -1006,10 +856,7 @@ const verifyCode = (req, res) => {
       }
 
       const updateUserSql = `
-        UPDATE users
-        SET is_verified = 1,
-            status = 'active'
-        WHERE id = ?
+        UPDATE users SET is_verified = 1, status = 'active' WHERE id = ?
       `;
 
       db.query(updateUserSql, [user.id], (updateUserErr) => {
@@ -1019,9 +866,7 @@ const verifyCode = (req, res) => {
         }
 
         const markCodeSql = `
-          UPDATE verification_codes
-          SET is_used = 1
-          WHERE code_id = ?
+          UPDATE verification_codes SET is_used = 1 WHERE code_id = ?
         `;
 
         db.query(markCodeSql, [codeResults[0].code_id], (markErr) => {
@@ -1030,9 +875,7 @@ const verifyCode = (req, res) => {
             return res.status(500).json({ message: "Server error" });
           }
 
-          return res.status(200).json({
-            message: "Account verified successfully",
-          });
+          return res.status(200).json({ message: "Account verified successfully" });
         });
       });
     });
@@ -1044,6 +887,7 @@ module.exports = {
   registerStaff,
   login,
   forgotPassword,
+  resetPassword,
   verifyEmail,
   getProfile,
   getDoctorPatients,
@@ -1052,5 +896,4 @@ module.exports = {
   verifyCode,
   resendCode,
   getLandingStats,
-  resetPassword,
 };
