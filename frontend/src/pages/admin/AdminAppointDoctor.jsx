@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import "../../styles/dashboard.css";
 
 function AdminAppointDoctor() {
-  const [users, setUsers] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [doctors, setDoctors] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState("");
   const [message, setMessage] = useState("");
@@ -11,46 +12,48 @@ function AdminAppointDoctor() {
 
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
 
-        const res = await fetch("http://localhost:5000/api/admin/users", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      const [patientsRes, doctorsRes] = await Promise.all([
+        fetch("http://localhost:5000/api/admin/unassigned-patients", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("http://localhost:5000/api/admin/doctors-list", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-        const data = await res.json();
+      const patientsData = await patientsRes.json();
+      const doctorsData = await doctorsRes.json();
 
-        if (!res.ok) {
-          setMessageType("error");
-          setMessage(data.message || "Failed to load users");
-          return;
-        }
-
-        setUsers(data.users || []);
-      } catch (err) {
+      if (!patientsRes.ok) {
         setMessageType("error");
-        setMessage("Server connection error");
-      } finally {
-        setLoading(false);
+        setMessage(patientsData.message || "Failed to load patients");
+        return;
       }
-    };
 
-    fetchUsers();
+      if (!doctorsRes.ok) {
+        setMessageType("error");
+        setMessage(doctorsData.message || "Failed to load doctors");
+        return;
+      }
+
+      setPatients(patientsData.patients || []);
+      setDoctors(doctorsData.doctors || []);
+    } catch (err) {
+      setMessageType("error");
+      setMessage("Server connection error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
-
-  const patients = useMemo(() => {
-    return users.filter((user) => user.role === "patient");
-  }, [users]);
-
-  const doctors = useMemo(() => {
-    return users.filter(
-      (user) => user.role === "doctor" && user.status === "active",
-    );
-  }, [users]);
 
   const handleAssign = async (e) => {
     e.preventDefault();
@@ -62,7 +65,7 @@ function AdminAppointDoctor() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/admin/assign-doctor", {
+      const res = await fetch("http://localhost:5000/api/admin/assign-patient", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -86,6 +89,9 @@ function AdminAppointDoctor() {
       setMessage("Doctor assigned to patient successfully");
       setSelectedPatient("");
       setSelectedDoctor("");
+
+      // refresh lists so the just-assigned patient drops out of "unassigned"
+      fetchData();
     } catch (err) {
       setMessageType("error");
       setMessage("Server connection error");
@@ -97,7 +103,7 @@ function AdminAppointDoctor() {
       <section className="stats-grid">
         <div className="stat-box blue">
           <div>
-            <p>Total Patients</p>
+            <p>Unassigned Patients</p>
             <h2>{patients.length}</h2>
           </div>
           <span className="material-symbols-outlined">personal_injury</span>
@@ -145,7 +151,7 @@ function AdminAppointDoctor() {
               >
                 <option value="">Choose patient</option>
                 {patients.map((patient) => (
-                  <option key={patient.id} value={patient.id}>
+                  <option key={patient.patient_id} value={patient.patient_id}>
                     {patient.full_name} - {patient.email}
                   </option>
                 ))}
@@ -161,8 +167,9 @@ function AdminAppointDoctor() {
               >
                 <option value="">Choose doctor</option>
                 {doctors.map((doctor) => (
-                  <option key={doctor.id} value={doctor.id}>
-                    Dr. {doctor.full_name} - {doctor.email}
+                  <option key={doctor.doctor_id} value={doctor.doctor_id}>
+                    Dr. {doctor.full_name}
+                    {doctor.specialty ? ` - ${doctor.specialty}` : ""}
                   </option>
                 ))}
               </select>
