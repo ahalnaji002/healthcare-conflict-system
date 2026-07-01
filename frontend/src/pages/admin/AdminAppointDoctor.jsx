@@ -115,7 +115,7 @@ function AdminAppointDoctor() {
       <section className="panel">
         <div className="panel-header">
           <div>
-            <h2>Appoint Doctor for Patient</h2>
+            <h2>Assigned  Doctor for Patient</h2>
             <p>
               Select a patient and assign an approved doctor for follow-up care.
             </p>
