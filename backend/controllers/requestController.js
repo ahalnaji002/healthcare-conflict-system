@@ -142,7 +142,7 @@ const assignNGO = (req, res) => {
 // ======================================================
 
 const getMyTasks = (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.id || req.user.user_id;
 
   // Step 1: Find the ngo_id linked to this logged-in user
   const findNgoSql = "SELECT ngo_id FROM ngos WHERE user_id = ?";
@@ -190,15 +190,15 @@ const getMyTasks = (req, res) => {
 // ======================================================
 
 const updateTaskStatus = (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.id || req.user.user_id;
   const { id } = req.params;
   const { status } = req.body;
 
-  const allowedStatuses = ["in_progress", "completed"];
+  const allowedStatuses = ["approved", "rejected", "in_progress", "completed"];
 
   if (!status || !allowedStatuses.includes(status)) {
     return res.status(400).json({
-      message: "Status must be 'in_progress' or 'completed'",
+      message: "Status must be approved, rejected, in_progress, or completed",
     });
   }
 
@@ -254,10 +254,41 @@ const updateTaskStatus = (req, res) => {
   });
 };
 
+const getMyProfile = (req, res) => {
+  console.log("TOKEN USER:", req.user);
+
+  const userId = req.user.id || req.user.user_id;
+
+  console.log("USER ID =", userId);
+
+  const sql = `
+    SELECT *
+    FROM ngos
+    WHERE user_id = ?
+  `;
+
+  db.query(sql, [userId], (err, rows) => {
+    if (err) {
+      return res.status(500).json({
+        message: "Server error",
+      });
+    }
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: "NGO not found",
+      });
+    }
+
+    res.json(rows[0]);
+  });
+};
+
 module.exports = {
   createRequest,
   getAllRequests,
   assignNGO,
   getMyTasks,
   updateTaskStatus,
+  getMyProfile,
 };
