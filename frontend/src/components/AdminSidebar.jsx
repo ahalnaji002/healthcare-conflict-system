@@ -71,7 +71,7 @@ function AdminSidebar() {
           className={path === "/admin-appoint-doctor" ? "active" : ""}
         >
           <span className="material-symbols-outlined">assignment_ind</span>
-          Appoint Doctor
+          Assigned Doctor
         </Link>
 
         <Link

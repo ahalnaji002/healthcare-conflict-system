@@ -70,7 +70,7 @@ function AdminLayout() {
     };
   } else if (path === "/admin-appoint-doctor") {
     pageInfo = {
-      title: "Appoint Doctor",
+      title: "Assigned Doctor",
       subtitle: "Assign approved doctors to registered patients.",
     };
   }
