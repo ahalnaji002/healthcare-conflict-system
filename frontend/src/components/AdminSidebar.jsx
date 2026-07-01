@@ -67,6 +67,14 @@ function AdminSidebar() {
         </Link>
 
         <Link
+          to="/admin-appoint-doctor"
+          className={path === "/admin-appoint-doctor" ? "active" : ""}
+        >
+          <span className="material-symbols-outlined">assignment_ind</span>
+          Appoint Doctor
+        </Link>
+
+        <Link
           to="/admin-join-requests"
           className={
             path === "/admin-join-requests"
