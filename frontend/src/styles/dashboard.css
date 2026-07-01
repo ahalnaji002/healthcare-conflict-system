@@ -5165,3 +5165,171 @@ a {
   width: 100%;
   margin: 18px 0;
 }
+
+.role-card {
+  border: 1px solid #cfe0ff;
+  background: #fff;
+  color: #0b2341;
+  transition: 0.25s ease;
+}
+
+.role-card:hover {
+  border-color: #0b5aa9;
+  background: #f0f7ff;
+}
+
+.active-role-card {
+  background: #0b5aa9;
+  color: white;
+  border-color: #0b5aa9;
+  box-shadow: 0 10px 25px rgba(11, 90, 169, 0.25);
+  transform: translateY(-3px);
+}
+
+.active-role-card span,
+.active-role-card p {
+  color: white;
+}
+
+.role-card.active-role-card {
+  background: #0b5aa9 !important;
+  color: #ffffff !important;
+  border-color: #0b5aa9 !important;
+  box-shadow: 0 10px 25px rgba(11, 90, 169, 0.25);
+  transform: translateY(-3px);
+}
+
+.role-card.active-role-card span,
+.role-card.active-role-card p {
+  color: #ffffff !important;
+}
+
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 45px;
+}
+
+.eye-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #0b5aa9;
+  display: flex;
+  align-items: center;
+}
+
+.eye-btn span {
+  font-size: 22px;
+}
+
+.password-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.single-eye-btn {
+  border: none;
+  background: transparent;
+  color: #0b5aa9;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.single-eye-btn span {
+  font-size: 22px;
+}
+
+.password-rules {
+  margin: 8px 0 14px;
+}
+
+.password-rules p {
+  font-size: 14px;
+  color: #8a96a8;
+  margin: 5px 0;
+  font-weight: 500;
+}
+
+.password-rules .rule-valid {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.password-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 22px 0 8px;
+}
+
+.password-header-row > label {
+  font-weight: 700;
+  color: #0b2341;
+}
+
+.show-pass-btn {
+  border: none;
+  background: transparent;
+  color: #0b5aa9;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.show-pass-btn span {
+  font-size: 22px;
+}
+
+.confirm-password-wrapper {
+  position: relative;
+}
+
+.confirm-password-wrapper input {
+  width: 100%;
+  padding-right: 45px;
+}
+
+.inside-eye-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #0b5aa9;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.inside-eye-btn span {
+  font-size: 22px;
+}
+
+.error-message {
+  color: #dc2626;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.success-message {
+  color: #16a34a;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
