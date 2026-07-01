@@ -11,6 +11,9 @@ const {
   getAllUsers,
   updateUserStatus,
   getNGOs,
+  getUnassignedPatients,
+  getDoctorsList,
+  assignPatientToDoctor,
 } = require("../controllers/adminController");
 
 // GET /api/admin/pending-registrations
@@ -33,5 +36,15 @@ router.patch("/users/:id/status", verifyToken, updateUserStatus);
 
 // GET /api/admin/ngos
 router.get("/ngos", verifyToken, getNGOs);
+// GET /api/admin/system-stats
+router.get("/system-stats", verifyToken, getAdminDashboard);
+// GET /api/admin/unassigned-patients
+router.get("/unassigned-patients", verifyToken, getUnassignedPatients);
+
+// GET /api/admin/doctors-list
+router.get("/doctors-list", verifyToken, getDoctorsList);
+
+// POST /api/admin/assign-patient
+router.post("/assign-patient", verifyToken, assignPatientToDoctor);
 
 module.exports = router;

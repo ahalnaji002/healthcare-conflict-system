@@ -26,7 +26,4 @@ router.get("/ngo/my-tasks", verifyToken, getMyTasks);
 // PUT /api/requests/ngo/update-status/:id
 router.put("/ngo/update-status/:id", verifyToken, updateTaskStatus);
 
-// PUT /api/requests/admin/assign/:id
-router.put("/admin/assign/:id", verifyToken, assignNGO);
-
 module.exports = router;

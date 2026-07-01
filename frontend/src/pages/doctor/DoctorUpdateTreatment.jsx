@@ -1,7 +1,47 @@
-import { Link } from "react-router-dom";
-import "../../styles/dashboard.css";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import API from "../../services/api";
 
 function DoctorUpdateTreatment() {
+  const { patientId } = useParams();
+  const navigate = useNavigate();
+  const [patient, setPatient] = useState(null);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchPatient = async () => {
+      try {
+        const res = await API.get(`/auth/doctor-patients/${patientId}`);
+        setPatient(res.data.patient);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to load patient data");
+      }
+    };
+
+    if (patientId) fetchPatient();
+  }, [patientId]);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setMessage("");
+  setError("");
+
+  try {
+    const res = await API.post("/medical/prescribe", {
+      patient_id: patientId, 
+      medicine_name: e.target.medicine_name.value,
+      dose: e.target.dose.value,
+      freq: e.target.freq.value,
+      instructions: e.target.instructions.value,
+      start_date: e.target.start_date.value,
+      end_date: e.target.end_date.value,
+    });
+    setMessage(res.data.message);
+    e.target.reset();
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to update treatment plan");
+  }
+};
   return (
     <>
       <section className="update-treatment-layout">
@@ -22,9 +62,12 @@ function DoctorUpdateTreatment() {
               <div className="patient-avatar large-avatar">A</div>
 
               <div>
-                <h3>Ahmed Hashem</h3>
-                <p>PT-2026-001 • Lower limb injury • Critical priority</p>
-
+                <h3>{patient?.full_name || "Loading..."}</h3>
+                <p>
+                  {patient?.patient_id ? `PT-${String(patient.patient_id).padStart(3, "0")}` : ""}
+                  {" • "}
+                  {patient?.medical_condition || "No condition recorded"}
+                </p>
                 <div className="profile-badges">
                   <span className="priority-badge critical">Critical</span>
                   <span className="tag blue-tag">Wound Care</span>
@@ -42,14 +85,11 @@ function DoctorUpdateTreatment() {
               </div>
             </div>
 
-            <form className="treatment-form">
+            <form className="treatment-form" onSubmit={handleSubmit}>
               <div className="treatment-form-grid">
                 <div className="treatment-field">
-                  <label>Plan Title</label>
-                  <input
-                    type="text"
-                    defaultValue="Lower Limb Injury Recovery Plan"
-                  />
+                  <label>Medicine Name</label>
+                  <input type="text" name="medicine_name" />
                 </div>
 
                 <div className="treatment-field">
@@ -63,45 +103,38 @@ function DoctorUpdateTreatment() {
 
                 <div className="treatment-field">
                   <label>Start Date</label>
-                  <input type="date" defaultValue="2026-05-28" />
+                  <input type="date" name="start_date" />
                 </div>
 
                 <div className="treatment-field">
                   <label>Next Review Date</label>
-                  <input type="date" defaultValue="2026-06-02" />
+                  <input type="date" name="end_date"  />
                 </div>
               </div>
 
               <div className="treatment-field">
                 <label>Medication Instructions</label>
-                <textarea
-                  rows="4"
-                  defaultValue="Continue Amoxicillin 500mg after breakfast for 7 days. Pain relief tablet after lunch only when needed. Apply wound cream before sleep daily."
-                />
+                <textarea rows="4" name="instructions"  />
               </div>
 
               <div className="treatment-field">
-                <label>Wound Care Instructions</label>
-                <textarea
-                  rows="4"
-                  defaultValue="Clean the wound once daily using sterile saline. Keep the wound dry after cleaning. Upload a wound photo every two days for review."
-                />
+                <label>Dose</label>
+                <textarea rows="4" name="dose"  />
               </div>
 
               <div className="treatment-field">
-                <label>Physical Therapy Notes</label>
-                <textarea
-                  rows="4"
-                  defaultValue="Begin light mobility exercises after the next review if pain remains low and wound condition stays stable."
-                />
+                <label>Frequency</label>
+                <textarea rows="4" name="freq"  />
               </div>
 
               <div className="treatment-actions">
+                {message && <p style={{ color: "green", marginBottom: "10px" }}>{message}</p>}
+                {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
                 <button type="button" className="secondary-plan-btn">
                   Save as Draft
                 </button>
 
-                <button type="button" className="submit-plan-btn">
+                <button type="submit" className="submit-plan-btn">
                   Update Treatment Plan
                 </button>
               </div>
@@ -177,7 +210,7 @@ function DoctorUpdateTreatment() {
             <h2>Quick Actions</h2>
 
             <div className="doctor-actions-grid">
-              <Link to="/doctor-patient-record">
+              <Link to={`/doctor-patient-record/${patientId}`}>
                 <button className="message-btn secondary-message-btn">
                   <span className="material-symbols-outlined">
                     clinical_notes
