@@ -432,7 +432,108 @@ const getNGOs = (req, res) => {
     res.json(rows);
   });
 };
+// ================= GET UNASSIGNED PATIENTS =================
+const getUnassignedPatients = (req, res) => {
+  const sql = `
+    SELECT
+      p.patient_id,
+      u.full_name,
+      u.email,
+      p.medical_condition
+    FROM patients p
+    JOIN users u ON p.user_id = u.id
+    WHERE p.patient_id NOT IN (
+      SELECT patient_id FROM patient_doctor
+    )
+    ORDER BY u.full_name
+  `;
 
+  db.query(sql, (err, rows) => {
+    if (err) {
+      console.error("GET UNASSIGNED PATIENTS ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    return res.status(200).json({
+      message: "Unassigned patients fetched successfully",
+      count: rows.length,
+      patients: rows,
+    });
+  });
+};
+
+// ================= GET DOCTORS LIST =================
+const getDoctorsList = (req, res) => {
+  const sql = `
+    SELECT
+      d.doctor_id,
+      u.full_name,
+      d.specialty
+    FROM doctors d
+    JOIN users u ON d.user_id = u.id
+    ORDER BY u.full_name
+  `;
+
+  db.query(sql, (err, rows) => {
+    if (err) {
+      console.error("GET DOCTORS LIST ERROR:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    return res.status(200).json({
+      message: "Doctors fetched successfully",
+      count: rows.length,
+      doctors: rows,
+    });
+  });
+};
+
+// ================= ASSIGN PATIENT TO DOCTOR =================
+const assignPatientToDoctor = (req, res) => {
+  const { patient_id, doctor_id } = req.body;
+
+  if (!patient_id || !doctor_id) {
+    return res.status(400).json({
+      message: "patient_id and doctor_id are required",
+    });
+  }
+
+  // Check if this link already exists
+  const checkSql = `
+    SELECT id FROM patient_doctor
+    WHERE patient_id = ? AND doctor_id = ?
+    LIMIT 1
+  `;
+
+  db.query(checkSql, [patient_id, doctor_id], (checkErr, checkResults) => {
+    if (checkErr) {
+      console.error("ASSIGN CHECK ERROR:", checkErr);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    if (checkResults.length > 0) {
+      return res.status(409).json({
+        message: "This patient is already assigned to this doctor",
+      });
+    }
+
+    const insertSql = `
+      INSERT INTO patient_doctor (patient_id, doctor_id)
+      VALUES (?, ?)
+    `;
+
+    db.query(insertSql, [patient_id, doctor_id], (insertErr) => {
+      if (insertErr) {
+        console.error("ASSIGN PATIENT ERROR:", insertErr);
+        return res.status(500).json({ message: "Failed to assign patient" });
+      }
+
+      return res.status(201).json({
+        message: "Patient assigned to doctor successfully",
+      });
+    });
+  });
+};
 module.exports = {
   getPendingRegistrations,
   getAdminDashboard,
@@ -441,4 +542,7 @@ module.exports = {
   getAllUsers,
   updateUserStatus,
   getNGOs,
+  getUnassignedPatients,
+  getDoctorsList,
+  assignPatientToDoctor,
 };
