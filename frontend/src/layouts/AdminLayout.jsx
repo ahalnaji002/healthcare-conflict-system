@@ -68,6 +68,11 @@ function AdminLayout() {
       title: "Settings",
       subtitle: "Manage system preferences and administrator settings.",
     };
+  } else if (path === "/admin-appoint-doctor") {
+    pageInfo = {
+      title: "Appoint Doctor",
+      subtitle: "Assign approved doctors to registered patients.",
+    };
   }
 
   return (

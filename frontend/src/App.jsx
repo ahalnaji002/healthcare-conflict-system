@@ -51,6 +51,7 @@ import AdminRecords from "./pages/admin/AdminRecords";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminEmergencyAlerts from "./pages/admin/AdminEmergencyAlerts";
+import AdminAppointDoctor from "./pages/admin/AdminAppointDoctor";
 
 function App() {
   return (
@@ -115,6 +116,7 @@ function App() {
         <Route path="/admin-records" element={<AdminRecords />} />
         <Route path="/admin-reports" element={<AdminReports />} />
         <Route path="/admin-settings" element={<AdminSettings />} />
+        <Route path="/admin-appoint-doctor" element={<AdminAppointDoctor />} />
         <Route
           path="/admin-emergency-alerts"
           element={<AdminEmergencyAlerts />}
