@@ -40,6 +40,54 @@ const createPanicAlert = (req, res) => {
   );
 };
 
+// GET /api/emergency/patient/:patientId/status
+const getPatientEmergencyStatus = (req, res) => {
+  const { patientId } = req.params;
+
+  const sql = `
+    SELECT status
+    FROM emergency_alerts
+    WHERE patient_id = ?
+    ORDER BY created_at DESC
+    LIMIT 1
+  `;
+
+  db.query(sql, [patientId], (err, rows) => {
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch patient emergency status.",
+        detailed_error: err.message,
+      });
+    }
+
+    if (rows.length === 0) {
+      return res.status(200).json({
+        success: true,
+        status: "Safe",
+      });
+    }
+
+    const latestStatus = rows[0].status;
+
+    let displayStatus = "Safe";
+
+    if (latestStatus === "new") {
+      displayStatus = "Emergency";
+    } else if (latestStatus === "in_progress") {
+      displayStatus = "In Progress";
+    } else if (latestStatus === "resolved") {
+      displayStatus = "Safe";
+    }
+
+    return res.status(200).json({
+      success: true,
+      status: displayStatus,
+      raw_status: latestStatus,
+    });
+  });
+};
+
 // GET /api/emergency/active
 const getActiveAlerts = (req, res) => {
   const sql = `
@@ -190,6 +238,7 @@ const getDoctorsForEmergency = (req, res) => {
 
 module.exports = {
   createPanicAlert,
+  getPatientEmergencyStatus,
   getActiveAlerts,
   updateAlertStatus,
   getDoctorAlerts,

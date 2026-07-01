@@ -9,5 +9,9 @@ router.patch("/:alertId/status", emergencyController.updateAlertStatus);
 router.get("/doctor/:doctorId", emergencyController.getDoctorAlerts);
 router.get("/doctors", emergencyController.getDoctorsForEmergency);
 router.patch("/:alertId/assign", emergencyController.assignDoctor);
+router.get(
+  "/patient/:patientId/status",
+  emergencyController.getPatientEmergencyStatus,
+);
 
 module.exports = router;

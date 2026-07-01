@@ -90,7 +90,7 @@ function EmergencyAlert() {
       setIsSending(true);
 
       const payload = {
-        patient_id: user?.patient_id || null,
+        patient_id: user?.patient_id || user?.id || user?.user_id || null,
         mobile_number: mobileNumber,
         description,
       };

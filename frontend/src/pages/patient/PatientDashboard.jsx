@@ -6,6 +6,37 @@ function PatientDashboard() {
   const [user, setUser] = useState(null);
   const [doctor, setDoctor] = useState(null);
   const [message, setMessage] = useState("");
+  const [emergencyStatus, setEmergencyStatus] = useState("Safe");
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await API.get("/auth/profile");
+        const profileUser = res.data.user;
+
+        setUser(profileUser);
+
+        if (profileUser?.patient_id) {
+          const statusRes = await API.get(
+            `/emergency/patient/${profileUser.patient_id}/status`,
+          );
+
+          setEmergencyStatus(statusRes.data.status || "Safe");
+        }
+
+        try {
+          const doctorRes = await API.get("/auth/patient-doctor");
+          setDoctor(doctorRes.data.doctor);
+        } catch {
+          setDoctor(null);
+        }
+      } catch (err) {
+        setMessage(err.response?.data?.message || "Failed to load dashboard");
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -73,7 +104,7 @@ function PatientDashboard() {
         <div className="stat-box red">
           <div>
             <p>Emergency Status</p>
-            <h2>Safe</h2>
+            <h2>{emergencyStatus}</h2>
           </div>
           <span className="material-symbols-outlined">health_and_safety</span>
         </div>
