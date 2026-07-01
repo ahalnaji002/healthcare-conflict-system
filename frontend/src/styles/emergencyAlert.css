@@ -471,3 +471,57 @@
 .back-btn:hover {
   color: #00478d;
 }
+
+.emergency-message {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.emergency-message.success {
+  background: #e8f7ef;
+  color: #166534;
+}
+
+.emergency-message.error {
+  background: #fff3f3;
+  color: #b91c1c;
+}
+
+.emergency-message-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+
+.emergency-message-box {
+  min-width: 320px;
+  max-width: 520px;
+  padding: 22px 26px;
+  border-radius: 18px;
+  background: white;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 800;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.22);
+}
+
+.emergency-message-box.success {
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.emergency-message-box.error {
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.emergency-message-box span {
+  font-size: 30px;
+}

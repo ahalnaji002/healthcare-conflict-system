@@ -32,13 +32,7 @@ function DoctorSidebar() {
           <span className="material-symbols-outlined">groups</span>
           Patients Management
         </Link>
-        <Link
-          to="/doctor-update-treatment"
-          className={path === "/doctor-update-treatment" ? "active" : ""}
-        >
-          <span className="material-symbols-outlined">healing</span>
-          Treatment Plan
-        </Link>
+        
         <Link
           to="/doctor-chat"
           className={path === "/doctor-chat" ? "active" : ""}
