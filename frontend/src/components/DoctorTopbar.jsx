@@ -1,13 +1,40 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import API from "../services/api";
 
 function DoctorTopbar({ title, subtitle, doctor }) {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [criticalCount, setCriticalCount] = useState(0);
+
   const doctorName = doctor?.name || doctor?.full_name || "Doctor";
   const doctorInitial = doctorName ? doctorName.charAt(0).toUpperCase() : "D";
 
   const isCriticalAlertsPage = location.pathname === "/doctor-critical-alerts";
+
+  useEffect(() => {
+    const fetchCriticalAlerts = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const doctorId = user?.id || user?.user_id;
+
+        if (!doctorId) return;
+
+        const res = await API.get(`/emergency/doctor/${doctorId}`);
+
+        setCriticalCount(res.data?.alerts?.length || 0);
+      } catch (err) {
+        console.error("Failed to fetch critical alerts:", err);
+      }
+    };
+
+    fetchCriticalAlerts();
+
+    const interval = setInterval(fetchCriticalAlerts, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <header className="dashboard-topbar">
@@ -20,11 +47,16 @@ function DoctorTopbar({ title, subtitle, doctor }) {
         {!isCriticalAlertsPage && (
           <button
             type="button"
-            className="emergency-action"
+            className={`emergency-action ${
+              criticalCount > 0 ? "alert-blink" : ""
+            }`}
             onClick={() => navigate("/doctor-critical-alerts")}
           >
-            <span className="material-symbols-outlined">notifications</span>
+            <span className="material-symbols-outlined">emergency</span>
             Critical Alerts
+            {criticalCount > 0 && (
+              <span className="emergency-count">{criticalCount}</span>
+            )}
           </button>
         )}
 

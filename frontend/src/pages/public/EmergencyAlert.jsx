@@ -13,9 +13,20 @@ function EmergencyAlert() {
   const [manualLocation, setManualLocation] = useState("");
   const [coordinates, setCoordinates] = useState(null);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [user, setUser] = useState(null);
+
+  const showMessage = (type, text) => {
+    setMessageType(type);
+    setMessage(text);
+
+    setTimeout(() => {
+      setMessage("");
+      setMessageType("");
+    }, 2000);
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -32,9 +43,10 @@ function EmergencyAlert() {
 
   const handleShareLocation = () => {
     setMessage("");
+    setMessageType("");
 
     if (!navigator.geolocation) {
-      setMessage("Geolocation is not supported by this browser.");
+      showMessage("error", "Geolocation is not supported by this browser.");
       return;
     }
 
@@ -48,26 +60,29 @@ function EmergencyAlert() {
         });
 
         setIsLocating(false);
-        setMessage("Location captured successfully.");
+        showMessage("success", "Location captured successfully.");
       },
       () => {
         setIsLocating(false);
-        setMessage("Unable to access location. Please enter it manually.");
+        showMessage(
+          "error",
+          "Unable to access location. Please enter it manually.",
+        );
       },
     );
   };
 
-  console.log("Current user:", user);
   const handleSendAlert = async () => {
     setMessage("");
+    setMessageType("");
 
     if (!mobileNumber.trim()) {
-      setMessage("Please enter your mobile number.");
+      showMessage("error", "Please enter your mobile number.");
       return;
     }
 
     if (!description.trim()) {
-      setMessage("Please describe the emergency case briefly.");
+      showMessage("error", "Please describe the emergency case briefly.");
       return;
     }
 
@@ -91,7 +106,7 @@ function EmergencyAlert() {
 
       await API.post("/emergency/panic", payload);
 
-      setMessage("Emergency alert sent successfully.");
+      showMessage("success", "Emergency alert sent successfully.");
 
       setTimeout(() => {
         if (user?.role === "patient") {
@@ -101,9 +116,10 @@ function EmergencyAlert() {
         } else {
           navigate("/");
         }
-      }, 1200);
+      }, 2000);
     } catch (err) {
-      setMessage(
+      showMessage(
+        "error",
         err.response?.data?.message ||
           err.response?.data?.detailed_error ||
           "Failed to send emergency alert.",
@@ -133,6 +149,23 @@ function EmergencyAlert() {
           </div>
         </header>
 
+        {message && (
+          <div className="emergency-message-overlay">
+            <div
+              className={
+                messageType === "success"
+                  ? "emergency-message-box success"
+                  : "emergency-message-box error"
+              }
+            >
+              <span className="material-symbols-outlined">
+                {messageType === "success" ? "check_circle" : "error"}
+              </span>
+              <p>{message}</p>
+            </div>
+          </div>
+        )}
+
         <section className="emergency-wrapper">
           <div className="emergency-card">
             <div className="emergency-card-header">
@@ -152,25 +185,6 @@ function EmergencyAlert() {
               <span className="material-symbols-outlined">info</span>
               The alert will be sent immediately to the medical team.
             </div>
-
-            {message && (
-              <div
-                style={{
-                  marginBottom: "18px",
-                  padding: "12px 14px",
-                  borderRadius: "12px",
-                  background: message.includes("successfully")
-                    ? "#e8f7ef"
-                    : "#fff3f3",
-                  color: message.includes("successfully")
-                    ? "#166534"
-                    : "#b91c1c",
-                  fontWeight: "700",
-                }}
-              >
-                {message}
-              </div>
-            )}
 
             <div className="emergency-form">
               <div className="location-section">
@@ -240,7 +254,7 @@ function EmergencyAlert() {
               <div className="form-group">
                 <label>Short Description of the Case</label>
                 <textarea
-                  placeholder="Describe the emergency briefly"
+                  placeholder="Examples: Severe bleeding • Gunshot wound • Difficulty breathing • Unconscious after explosion"
                   maxLength="250"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}

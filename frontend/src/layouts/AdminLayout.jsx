@@ -1,14 +1,14 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import AdminSidebar from "../components/AdminSidebar";
 import AdminTopbar from "../components/AdminTopbar";
 import API from "../services/api";
-
 function AdminLayout() {
   const location = useLocation();
   const path = location.pathname;
-
   const [admin, setAdmin] = useState(null);
+  const [emergencyCount] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAdminProfile = async () => {
@@ -24,7 +24,7 @@ function AdminLayout() {
   }, []);
 
   let pageInfo = {
-    title: "Admin Portal",
+    title: "Critical Alerts",
     subtitle: "Manage platform operations, requests, records, and reports.",
   };
 
@@ -85,6 +85,19 @@ function AdminLayout() {
           subtitle={pageInfo.subtitle}
           admin={admin}
         />
+
+        {emergencyCount > 0 && (
+          <div
+            className="emergency-toast"
+            onClick={() => navigate("/admin-emergency-alerts")}
+          >
+            <span className="material-symbols-outlined">emergency</span>
+            <div>
+              <strong>New Emergency Alert</strong>
+              <p>{emergencyCount} active alerts. Click to view.</p>
+            </div>
+          </div>
+        )}
 
         <Outlet />
       </main>

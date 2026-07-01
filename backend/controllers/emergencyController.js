@@ -2,10 +2,12 @@ const db = require("../config/db");
 
 // POST /api/emergency/panic
 const createPanicAlert = (req, res) => {
-  const { patient_id, lat, long, mobile_number, description } = req.body;
-
-  const location = lat && long ? `${lat}, ${long}` : "Location not provided";
-
+  const { patient_id, lat, long, mobile_number, description, manual_location } =
+    req.body;
+  const location =
+    lat && long
+      ? `${lat}, ${long}`
+      : manual_location || "Location not provided";
   const sql = `
     INSERT INTO emergency_alerts
       (patient_id, mobile_number, location, description, status)

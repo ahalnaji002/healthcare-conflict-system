@@ -5333,3 +5333,40 @@ a {
   font-weight: 700;
   margin-bottom: 10px;
 }
+
+.alert-blink {
+  animation: alertBlink 1s infinite;
+  background: #dc2626 !important;
+  color: white !important;
+  box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+}
+
+.alert-blink span {
+  color: white !important;
+}
+
+@keyframes alertBlink {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+    opacity: 1;
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+    opacity: 0.75;
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+    opacity: 1;
+  }
+}
+
+.emergency-count {
+  background: black;
+  color: #dc2626;
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 12px;
+  font-weight: 800;
+}
