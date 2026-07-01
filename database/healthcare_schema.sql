@@ -21,7 +21,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '7c9c3af8-5441-11f1-9523-902e163a6ba0:1-365';
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '7c9c3af8-5441-11f1-9523-902e163a6ba0:1-493';
 
 --
 -- Table structure for table `activity_logs`
@@ -85,7 +85,7 @@ CREATE TABLE `assistance_requests` (
   `description` text,
   `urgency_level` enum('critical','medium','low') DEFAULT 'medium',
   `location` varchar(255) DEFAULT NULL,
-  `status` enum('pending','in_progress','completed','rejected') DEFAULT 'pending',
+  `status` enum('pending','approved','rejected','in_progress','completed') DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`assistance_request_id`),
@@ -142,7 +142,7 @@ CREATE TABLE `emergency_alerts` (
   PRIMARY KEY (`alert_id`),
   KEY `patient_id` (`patient_id`),
   CONSTRAINT `emergency_alerts_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`patient_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -245,7 +245,7 @@ CREATE TABLE `medications` (
   PRIMARY KEY (`medication_id`),
   KEY `plan_id` (`plan_id`),
   CONSTRAINT `medications_ibfk_1` FOREIGN KEY (`plan_id`) REFERENCES `treatment_plans` (`plan_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -371,7 +371,7 @@ CREATE TABLE `patient_doctor` (
   KEY `doctor_id` (`doctor_id`),
   CONSTRAINT `patient_doctor_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`patient_id`) ON DELETE CASCADE,
   CONSTRAINT `patient_doctor_ibfk_2` FOREIGN KEY (`doctor_id`) REFERENCES `doctors` (`doctor_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -517,7 +517,7 @@ CREATE TABLE `verification_codes` (
   `code_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int unsigned NOT NULL,
   `code` varchar(10) NOT NULL,
-  `purpose` enum('patient_register','doctor_activation','ngo_activation','reset_password') NOT NULL,
+  `purpose` enum('patient_register','reset_password') NOT NULL,
   `expires_at` datetime NOT NULL,
   `is_used` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -537,4 +537,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-06-29 15:44:12
+-- Dump completed on 2026-07-02  0:06:09
