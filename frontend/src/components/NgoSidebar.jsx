@@ -17,27 +17,45 @@ function NgoSidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        <Link to="/ngo-dashboard" className={path === "/ngo-dashboard" ? "active" : ""}>
+        <Link
+          to="/ngo-dashboard"
+          className={path === "/ngo-dashboard" ? "active" : ""}
+        >
           <span className="material-symbols-outlined">dashboard</span>
           Dashboard
         </Link>
-        <Link to="/ngo-triage" className={path === "/ngo-triage" ? "active" : ""}>
+        <Link
+          to="/ngo-triage"
+          className={path === "/ngo-triage" ? "active" : ""}
+        >
           <span className="material-symbols-outlined">local_hospital</span>
-          Triage
+          Request History
         </Link>
-        <Link to="/ngo-emergency" className={path === "/ngo-emergency" ? "active" : ""}>
+        <Link
+          to="/ngo-emergency"
+          className={path === "/ngo-emergency" ? "active" : ""}
+        >
           <span className="material-symbols-outlined">emergency</span>
           Emergency
         </Link>
-        <Link to="/ngo-resources" className={path === "/ngo-resources" ? "active" : ""}>
+        <Link
+          to="/ngo-resources"
+          className={path === "/ngo-resources" ? "active" : ""}
+        >
           <span className="material-symbols-outlined">inventory_2</span>
           Resources
         </Link>
-        <Link to="/ngo-reports" className={path === "/ngo-reports" ? "active" : ""}>
+        <Link
+          to="/ngo-reports"
+          className={path === "/ngo-reports" ? "active" : ""}
+        >
           <span className="material-symbols-outlined">assessment</span>
           Reports
         </Link>
-        <Link to="/ngo-profile" className={path === "/ngo-profile" ? "active" : ""}>
+        <Link
+          to="/ngo-profile"
+          className={path === "/ngo-profile" ? "active" : ""}
+        >
           <span className="material-symbols-outlined">person</span>
           Profile
         </Link>

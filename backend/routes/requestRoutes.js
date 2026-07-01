@@ -9,6 +9,7 @@ const {
   assignNGO,
   getMyTasks,
   updateTaskStatus,
+  getMyProfile,
 } = require("../controllers/requestController");
 
 // POST /api/requests/create
@@ -26,4 +27,5 @@ router.get("/ngo/my-tasks", verifyToken, getMyTasks);
 // PUT /api/requests/ngo/update-status/:id
 router.put("/ngo/update-status/:id", verifyToken, updateTaskStatus);
 
+router.get("/ngo/profile", verifyToken, getMyProfile);
 module.exports = router;
