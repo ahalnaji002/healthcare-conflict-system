@@ -8,6 +8,9 @@ function JoinRequest() {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
   const [documentFile, setDocumentFile] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordValue, setPasswordValue] = useState("");
+  const [confirmPasswordValue, setConfirmPasswordValue] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,9 +76,13 @@ function JoinRequest() {
       return;
     }
 
-    if (e.target.password.value.length < 6) {
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+
+    if (!passwordRegex.test(e.target.password.value)) {
       setMessageType("error");
-      setMessage("Password must be at least 6 characters");
+      setMessage(
+        "Password must be at least 8 characters and contain letters and numbers",
+      );
       return;
     }
 
@@ -310,23 +317,70 @@ function JoinRequest() {
                 ></textarea>
               </div>
 
-              <div className="form-grid">
+              <div className="password-rules">
+                <p className={passwordValue.length >= 8 ? "rule-valid" : ""}>
+                  ✓ At least 8 characters
+                </p>
+
+                <p
+                  className={/[A-Za-z]/.test(passwordValue) ? "rule-valid" : ""}
+                >
+                  ✓ Contains letters
+                </p>
+
+                <p className={/\d/.test(passwordValue) ? "rule-valid" : ""}>
+                  ✓ Contains numbers
+                </p>
+
+                <p
+                  className={
+                    passwordValue &&
+                    confirmPasswordValue &&
+                    passwordValue === confirmPasswordValue
+                      ? "rule-valid"
+                      : ""
+                  }
+                >
+                  ✓ Passwords match
+                </p>
+              </div>
+
+              <div className="form-grid password-grid">
                 <div className="field">
                   <label htmlFor="password">Create Password</label>
                   <input
                     id="password"
-                    type="password"
-                    placeholder="Min. 8 characters"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Min. 8 characters, letters and numbers"
+                    value={passwordValue}
+                    onChange={(e) => setPasswordValue(e.target.value)}
                   />
                 </div>
 
                 <div className="field">
                   <label htmlFor="confirmPassword">Confirm Password</label>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="Repeat password"
-                  />
+
+                  <div className="confirm-password-wrapper">
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Repeat password"
+                      value={confirmPasswordValue}
+                      onChange={(e) => setConfirmPasswordValue(e.target.value)}
+                    />
+
+                    <button
+                      type="button"
+                      className="inside-eye-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      <span className="material-symbols-outlined">
+                        {showPassword ? "visibility_off" : "visibility"}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
