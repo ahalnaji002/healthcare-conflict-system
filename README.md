@@ -1,67 +1,124 @@
 # 🏥 Healthcare Conflict System
 
-A smart healthcare follow-up and humanitarian support system designed for war injuries and chronic patients.
+A full-stack healthcare management platform designed to support patients affected by wars and humanitarian crises.
 
-The platform connects:
-- 👨‍⚕️ Doctors
-- 🧑‍🤝‍🧑 Patients
-- 🏢 NGOs
-- 🛡️ Admins
-
-to improve communication, treatment follow-up, emergency coordination, and humanitarian assistance management.
+The system connects **Patients**, **Doctors**, **NGOs**, and **Administrators** in one centralized platform to improve medical follow-up, emergency response, and humanitarian assistance management.
 
 ---
 
-# ✨ Features
+# 🌟 Main Features
 
-## 🔐 Authentication System
-- User Registration
-- User Login
+## 🔐 Authentication & Security
+- Secure Login & Registration
+- Email Verification
 - JWT Authentication
-- Protected Routes
-- Role-based Access
+- Role-Based Authorization
+- Protected API Routes
+- Password Validation
+- Forgot Password Support
 
 ---
 
-## 👥 User Roles
+# 👥 User Roles
 
-### 🧑 Patient
-- Register/Login
+## 🧑 Patient
+- Create an account
+- Verify email
 - View treatment plans
-- Request humanitarian support
 - Track medical progress
-
-### 👨‍⚕️ Doctor
-- Manage patients
-- Update treatment plans
-- Monitor patient status
-
-### 🏢 NGO
-- Receive support requests
-- Manage humanitarian cases
-- Track request priorities
-
-### 🛡️ Admin
-- Add Doctors
-- Add NGOs
-- Manage all users
-- System monitoring
+- Send emergency alerts
+- Request humanitarian assistance
+- Chat with assigned doctor
+- Manage personal profile
 
 ---
 
-# 🛠️ Technologies Used
+## 👨‍⚕️ Doctor
+- View assigned patients
+- Access patient medical records
+- Update treatment plans
+- Receive emergency alerts
+- Manage critical cases
+- Communicate with patients
+- Update personal profile
+
+---
+
+## 🏢 NGO
+- Review humanitarian assistance requests
+- Prioritize emergency cases
+- Manage available resources
+- View reports
+- Update organization profile
+
+---
+
+## 🛡️ Administrator
+- Dashboard with live statistics
+- Manage all users
+- Review Join Requests
+- Approve / Reject registrations
+- Activate / Suspend accounts
+- Manage emergency alerts
+- Assign patients to doctors
+- View medical records
+- Review reports
+- Monitor system activity logs
+
+---
+
+# 🚨 Emergency Alert System
+
+The platform includes a real-time emergency reporting module.
+
+Features include:
+
+- Share GPS location
+- Manual location entry
+- Emergency description
+- Mobile number collection
+- Instant alert submission
+- Admin notification
+- Doctor assignment
+- Doctor-specific emergency dashboard
+- Emergency status management
+- Visual emergency notifications
+
+---
+
+# 📋 Humanitarian Assistance Module
+
+Patients can request humanitarian assistance.
+
+Administrators and NGOs can:
+
+- Review requests
+- Assign priorities
+- Track request status
+- Manage humanitarian support
+
+---
+
+# 💻 Technologies Used
 
 ## Frontend
 - React.js
 - Vite
+- React Router
 - Axios
-- CSS
+- CSS3
+- Material Symbols
+
+---
 
 ## Backend
 - Node.js
 - Express.js
 - JWT
 - bcrypt.js
+- Nodemailer
+
+---
 
 ## Database
 - MySQL
@@ -70,112 +127,231 @@ to improve communication, treatment follow-up, emergency coordination, and human
 
 ---
 
-# 📁 Project Structure
+# 📂 Project Structure
 
-```bash
-healthcare-conflict-system/
+```text
+healthcare-conflict-system
 │
-├── backend/
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── routes/
-│   ├── models/
+├── backend
+│   ├── config
+│   ├── controllers
+│   ├── middleware
+│   ├── routes
+│   ├── database
+│   ├── uploads
+│   ├── utils
 │   └── server.js
 │
-├── frontend/
-│   ├── src/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   └── App.jsx
-│   └── package.json
+├── frontend
+│   ├── public
+│   └── src
+│       ├── components
+│       ├── layouts
+│       ├── pages
+│       │   ├── admin
+│       │   ├── doctor
+│       │   ├── ngo
+│       │   ├── patient
+│       │   └── public
+│       ├── services
+│       ├── styles
+│       ├── App.jsx
+│       └── main.jsx
+│
+├── database
+│   └── healthcare_schema.sql
 │
 └── README.md
+```
 
+---
 
-⚙️ Installation:
+# ⚙️ Installation
 
-1️⃣ Clone Repository
+## Clone Repository
+
+```bash
 git clone https://github.com/ahalnaji002/healthcare-conflict-system.git
+```
 
-2️⃣ Install Backend Dependencies
+---
+
+## Install Backend
+
+```bash
 cd backend
 npm install
+```
 
-3️⃣ Install Frontend Dependencies
+---
+
+## Install Frontend
+
+```bash
 cd ../frontend
 npm install
+```
 
-🗄️ Database Setup
-Start XAMPP
-Run:
-Apache
-MySQL
+---
 
-Create Database
-Open phpMyAdmin:
+# 🗄️ Database Setup
+
+1. Start **Apache** and **MySQL** using XAMPP.
+
+2. Open phpMyAdmin.
+
+```
 http://localhost/phpmyadmin
+```
 
-Create database:
+3. Create database
+
+```
 healthcare_conflict_system
+```
 
-▶️ Run Project
-Start Backend
+4. Import
+
+```
+database/healthcare_schema.sql
+```
+
+---
+
+# ▶️ Running the Project
+
+## Backend
+
+```bash
 cd backend
 npm start
+```
 
-Backend runs on:
+Runs on
+
+```
 http://localhost:5000
+```
 
-Start Frontend
+---
+
+## Frontend
+
+```bash
 cd frontend
 npm run dev
+```
 
-Frontend runs on:
+Runs on
+
+```
 http://localhost:5173
+```
 
-🔒 Protected Routes Example
+---
+
+# 🔐 API Protection
+
+Most APIs require JWT authentication.
+
+Example:
+
+```
 GET /api/auth/profile
+```
 
-Requires:
-Authorization: Bearer TOKEN
+Header
 
-📌 Current Progress
-✅ Backend Setup
-✅ Frontend Setup
-✅ MySQL Connection
-✅ User Authentication
-✅ JWT Protection
-✅ Register Page
-✅ Login Page
-✅ API Integration
-✅ UI Design
+```
+Authorization: Bearer <TOKEN>
+```
 
-🚀 Future Features
-Patient Dashboard
-Doctor Dashboard
-NGO Dashboard
-Emergency Requests
-Notifications System
-Medical Reports
-Real-time Chat
-File Uploads
-Multi-language Support
+---
 
-👨‍💻 Team Members
-Ahmed Alnaji
-Ahmed Shakshak
-Jihad Alshannat
-Khaled Adnan Alzeaq
-Bayan Naseer Abu Naseer
-Mahmoud Saeed Srour
-Islam Alaa Elghalayini
-Abdelrahman Hayel shat 
+# 📊 Current Implementation
 
-📄 License
+## Authentication
 
-This project is developed for educational and graduation project purposes.
+- ✅ Login
+- ✅ Patient Registration
+- ✅ Join Request
+- ✅ Email Verification
+- ✅ Forgot Password
+- ✅ JWT Authentication
 
-❤️ Vision
+### Patient
 
-Building a smart humanitarian healthcare platform to support injured and chronic patients in conflict areas through technology.
+- ✅ Dashboard
+- ✅ Medical Progress
+- ✅ Treatment Plan
+- ✅ Assistance Requests
+- ✅ Emergency Alerts
+- ✅ Chat
+- ✅ Profile
+
+### Doctor
+
+- ✅ Dashboard
+- ✅ Assigned Patients
+- ✅ Medical Records
+- ✅ Treatment Updates
+- ✅ Emergency Cases
+- ✅ Chat
+- ✅ Profile
+
+### NGO
+
+- ✅ Dashboard
+- ✅ Humanitarian Requests
+- ✅ Resource Management
+- ✅ Reports
+- ✅ Profile
+
+### Administrator
+
+- ✅ Dashboard
+- ✅ User Management
+- ✅ Join Requests
+- ✅ Emergency Management
+- ✅ Medical Records
+- ✅ Reports
+- ✅ Activity Logs
+- ✅ System Settings
+- ✅ Doctor Assignment
+
+---
+
+# 🚀 Planned Improvements
+
+- Real-time notifications (Socket.IO)
+- Video consultation
+- AI-assisted triage
+- Multi-language support
+- SMS notifications
+- Mobile application
+- Analytics Dashboard
+
+---
+
+# 👨‍💻 Development Team
+
+- Ahmed Alnaji
+- Ahmed Shakshak
+- Jehad Alshannat
+- Khaled Adnan Alzeaq
+- Bayan Naseer Abu Naseer
+- Mahmoud Saeed Srour
+- Islam Alaa Elghalayini
+- Abdelrahman Hayel Shat
+
+---
+
+# 📄 License
+
+This project was developed for educational and graduation project purposes.
+
+---
+
+# ❤️ Vision
+
+Our vision is to build a secure, scalable, and intelligent healthcare platform that improves communication between healthcare providers, humanitarian organizations, and patients affected by conflicts, ensuring faster medical response and better continuity of care.
